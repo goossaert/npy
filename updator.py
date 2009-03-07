@@ -1,9 +1,7 @@
 """
 Updator module.
 """
-__version__ = "$Revision: 68852 $"
 __docformat__ = "restructuredtext en"
-# $Source$
 
 ## Copyright (c) 2009 Emmanuel Goossaert 
 ##
