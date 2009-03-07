@@ -1,23 +1,74 @@
+"""
+Updator module.
+"""
+__version__ = "$Revision: 68852 $"
+__docformat__ = "restructuredtext en"
+# $Source$
+
+## Copyright (c) 2009 Emmanuel Goossaert 
+##
+## This file is part of npy.
+##
+## npy is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## npy is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with npy.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import itertools
+
+
 class Updator:
-    "update function class"
+    """
+    Abstract class for the gradient descent updating process
+    """
 
     def __init__(self):
+        """Initializer."""
         pass
 
-    def compute_update(self, learning_rate, unit, outputs, errors, weight_updates, data, out_data):
+    def compute_update(self, unit, outputs, errors, weight_updates, data, out_data):
+        """
+        Compute the update to be applied, given the provided parameters. 
+
+        :Parameters:
+            unit : Unit
+                Network unit to which the update has to be applied.
+            outputs : sequence of sequences
+                The outputs of each unit.
+            errors : sequence
+                Error values.
+            weight_updates : sequence
+                Update values for the weights.
+            data
+                Data input, to be filled by the user if necessary.
+            out_data
+                Data output, to be filled by the user if necessary.
+                
+        :Returns:
+            The new values for the weights, after having applied the updates. 
+        """
         return None
 
 
-#from Network import Network
-import itertools
 
 class UpdatorBackpropagation(Updator):
-    "update backpropagation function class"
+    """
+    Backpropagation update class 
+    """
 
     def __init__(self):
         pass
 
-    def compute_update(self, learning_rate, index, unit, outputs, errors, weight_update, data, out_data): 
+    def compute_update(self, index, unit, outputs, errors, weight_update, data, out_data): 
         #inlearning_rate = 0.10
     
         weights = unit.get_weights()
@@ -25,31 +76,33 @@ class UpdatorBackpropagation(Updator):
         for node_weights, weight_update_node in itertools.izip(weights, weight_update): 
             next_node_weights = []
             for weight, weight_update in itertools.izip(node_weights, weight_update_node):
-                next_node_weights.append(weight + learning_rate * weight_update)
+                next_node_weights.append(weight + weight_update)
 
             next_weights.append(next_node_weights)
 
         return next_weights
 
 
-import itertools
 
 class UpdatorTD(Updator):
-    "update TD Reinforcement learning function class"
+    """
+    TD Reinforcement learning update class
+    """
 
     def __init__(self):
         pass
 
-    def compute_(self, Alpha, index, unit, outputs, errors, weight_update, data, out_data): 
+    def compute_update__(self, Alpha, index, unit, outputs, errors, weight_update, data, out_data): 
+
         vgamma  = 0.001
         vlambda = 0.1
         valpha  = 0.001
     
-        eprevs     = data[ 0 ][ index ]
-        reward     = data[ 1 ]
-        outputnext = data[ 2 ]
+        eprevs     = data[0][index]
+        reward     = data[1]
+        outputnext = data[2]
 
-        output = outputs[ -1 ][ 0 ]
+        output = outputs[-1][0]
 
         es = []
         for eprev, weight_update in itertools.izip(eprevs, weight_update):
