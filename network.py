@@ -29,27 +29,34 @@ import random
 class Node:
     """
     Neural network Node
-
-    :IVariables:
-        weights : sequence of floats
-            The weights on the edges from each of the nodes from the previous
-            layer to the current node.
     """
 
-    def __init__(self, weight_nb):
-        self.weights = []
-       
-        for i in range(weight_nb):
-            self.weights.append(random.uniform(-1, 1)) 
+    def __init__(self, previous_node_nb):
+        """
+        Initializer
 
-#        print 'weights', self.weights
+        :Parameters:
+            previous_node_nb : integer
+                The number of the nodes in the previous unit.
+        """
+
+        #   :IVariables:
+        #       weights : sequence of floats
+        #           The weights on the edges from each of the nodes from the previous
+        #           unit to the current node.
+        self.__weights = []
+       
+        for i in range(previous_node_nb):
+            self.__weights.append(random.uniform(-1, 1)) 
+
+#        print 'weights', self.__weights
 
     def get_weights(self):
-        return self.weights
+        return self.__weights
 
     def set_weights(self, weights):
         # TODO check the number of weights and raise exception if not equal
-        self.weights = weights
+        self.__weights = weights
 
     def compute_output(self, input, activator):
         """
@@ -62,30 +69,17 @@ class Node:
                 Activator instance to be used to compute the output.
 
         :Returns:
-            sequence : the output values of the network.
+            sequence: the output values of the network.
         """
                                                          
-
-#        print 'Node', input
-#        print 'weights', self.weights
-        
         # check the number of inputs and raise exception if not equal
-        return activator.compute_activation(input, self.weights)
+        return activator.compute_activation(input, self.__weights)
 
 
 
 class Unit:
     """
     Neural network unit class
-
-    :IVariables:
-        nodes : sequence of Node
-            Nodes in the current unit. 
-        activator : Activator
-            Activator instance used to compute the activation function
-            for the current unit.
-        updator : Updator
-            Updator instance used to compute the updates to the weights.
     """
 
     def __init__(self, node_nb, previous_node_nb, activator, updator):
@@ -104,16 +98,24 @@ class Unit:
                 Updator instance used to compute the updates to the weights.
         """
 
-        self.nodes = []
-        self.activator = activator
-        self.updator = updator 
+        #   :PVariables:
+        #   nodes : sequence of Node
+        #       Nodes in the current unit. 
+        #   activator : Activator
+        #       Activator instance used to compute the activation function
+        #       for the current unit.
+        #   updator : Updator
+        #       Updator instance used to compute the updates to the weights.
+        self.__nodes = []
+        self.__activator = activator
+        self.__updator = updator 
         
         for i in range(node_nb):
             node = Node(previous_node_nb)
-            self.nodes.append(node)
+            self.__nodes.append(node)
 
     def get_node_nb(self):
-        return len(self.nodes) 
+        return len(self.__nodes) 
 
     def get_weights(self):
         """
@@ -126,7 +128,7 @@ class Unit:
 
         weights = []
         
-        for node in self.nodes:
+        for node in self.__nodes:
             weights.append(node.get_weights())
         return weights
 
@@ -139,21 +141,21 @@ class Unit:
                 Weights to be loaded into the nodes of the current unit.
         """
 
-        for node, weight in itertools.izip(self.nodes, weights):
+        for node, weight in itertools.izip(self.__nodes, weights):
             node.set_weights(weight)
         #self.Nodes[index].set_weights(weights)
 
     def set_activator(self, activator):
-        self.activator = activator
+        self.__activator = activator
 
     def get_activator(self):
-        return self.activator
+        return self.__activator
 
     def set_updator(self, updator):
-        self.updator = updator
+        self.__updator = updator
 
     def get_updator(self):
-        return self.update
+        return self.__updator
 
     def load_values(self, values):
         """
@@ -168,7 +170,7 @@ class Unit:
         :Returns:
         """
         def loadval(node, val): node.load_value(val)
-        map(loadval, self.nodes, values)
+        map(loadval, self.__nodes, values)
 
     def compute_output(self, input):
         """
@@ -184,8 +186,8 @@ class Unit:
         """
 
         values = []
-        for node in self.nodes: 
-            values.append(node.compute_output(input, self.activator))
+        for node in self.__nodes: 
+            values.append(node.compute_output(input, self.__activator))
         
         return values 
     
@@ -202,7 +204,7 @@ class Unit:
         :Returns:
             Value of the activation function.
         """
-        return self.activator.compute_activation(inputs, weights)
+        return self.__activator.compute_activation(inputs, weights)
     
     def compute_errors(self, is_output_unit, next_unit_errors, desired_output, outputs, next_unit_weights):
         """
@@ -229,7 +231,7 @@ class Unit:
         :Returns:
             The errors.
         """
-        return self.activator.compute_errors(is_output_unit, next_unit_errors, desired_output, outputs, next_unit_weights)
+        return self.__activator.compute_errors(is_output_unit, next_unit_errors, desired_output, outputs, next_unit_weights)
 
     def compute_update(self, index, unit, outputs, errors, weight_updates, data, out_data): 
         """
@@ -254,39 +256,56 @@ class Unit:
         :Returns:
             The new values for the weights, after having applied the updates. 
         """
-        return self.updator.compute_update(index, unit, outputs, errors, weight_updates, data, out_data)
+        return self.__updator.compute_update(index, unit, outputs, errors, weight_updates, data, out_data)
 
+
+from npy.activator import Activator
+from npy.updator import Updator
 
 
 class Network:
     """
     Neural network class
-    
-    :IVariables:
-        units : sequence of Unit 
-            Units of the network.
-        input_nb : integer
-            Number of nodes in the input unit.
-        learning_rate : float
-            Learning rate of the gradient descent process. 
-    """
+    """ 
+    #   :PVariables:
+    #       __units : sequence of Unit 
+    #           Units of the network.
+    #       __nb_inputs : integer
+    #           Number of nodes in the input unit.
+    #     
+    #       __learning_rate : float
+    #           Learning rate of the gradient descent process. 
 
-    def __init__(self, input_nb, learning_rate):
+    def __init__(self,nb_inputs,learning_rate):
         """
         Initializer 
 
         :Parameters:
-            input_nb : integer
+            nb_inputs : integer
                 Number of nodes in the input unit.
             learning_rate : float
                 Learning rate of the gradient descent process. 
         """
-        self.units = []
-        self.input_nb = input_nb
-        self.learning_rate = learning_rate
+        self.__units = []
+        self.__nb_inputs = nb_inputs
+        self.__learning_rate = learning_rate
 
-    def set_learning_rate(self, learning_rate):
-        self.learning_rate = learning_rate
+    def reset(self):
+        """
+        Deleted the internal structure of the network, making it ready
+        to receive a new one.
+        """
+        self.__units = []
+
+    # TODO delete this, only used for debugging purposes
+    def get_units(self):
+        return self.__units
+    
+    def get_learning_rate(self):
+        return self.__learning_rate
+
+    def set_learning_rate(self,learning_rate):
+        self.__learning_rate = learning_rate
 
     def add_unit(self, node_nb, activator, updator):
         """
@@ -305,65 +324,18 @@ class Network:
         :Returns:
             The unit that has just been added to the network.
         """
-        if len(self.units) == 0:
-            previous_nodes_nb = self.input_nb
+        if len(self.__units) == 0:
+            previous_nodes_nb = self.__nb_inputs
         else:
-            previous_nodes_nb = self.units[-1].get_node_nb()
+            previous_nodes_nb = self.__units[-1].get_node_nb()
 
         # Add 1  order to implement the bias
         previous_nodes_nb = previous_nodes_nb + 1
 
         unit = Unit(node_nb, previous_nodes_nb, activator, updator)
-        self.units.append(unit)
+        self.__units.append(unit)
         return unit
 
-    def __saveweightsUnit(self, filename, Unit):
-        """
-        TO BE DELETED 
-        "Save the weights from a unit to a file"
-        """
-        weights = unit.get_weights()
-
-        file = open(filename, 'a')
-        for li in weights:
-            for lj in li:
-                file.write(str(lj))
-                file.write(' ')
-            file.write('\n')
-        file.close()
-
-    def saveweights(self, filename):
-        """
-        TO BE DELETED 
-        "Save the weights  a file"
-        """
-        file = open(filename, 'w')
-        for unit in self.units:
-            self.__saveweightsUnit(file, unit)
-        file.close() 
-
-
-    def __loadweightsUnit(self, file, Unit):
-        """
-        TO BE DELETED 
-        "Save the weights from a unit to a file"
-        """
-        weights = []
-        for i in range(Unit.get_node_nb()):
-            line = file.readline()
-            elem = line.split(' ')
-            weights.append([float(j) for j in elem[:-1]])
-        Unit.set_weights(weights)
-        
-    def loadweights(self, filename):
-        """
-        TO BE DELETED 
-        "Load the weights from a file"
-        """
-        file = open(filename, 'r')
-        for unit in self.units:
-            self.__loadweightsUnit(file, unit)
-        file.close()
 
     def compute_output(self, input):
         """
@@ -379,7 +351,7 @@ class Network:
         """
          
         values = [input] 
-        for unit in self.units:
+        for unit in self.__units:
             # Add the bias value to the input
             values[-1].append(1)
             values.append(unit.compute_output(values[-1])) 
@@ -427,8 +399,8 @@ class Network:
         previous_weights = None
 
         # Compute the error values: it has to be done backward 
-        for unit, output, index in reversed(zip(self.units, outputs[1:], range(len(self.units)))):
-            if index == len(self.units) - 1:
+        for unit, output, index in reversed(zip(self.__units, outputs[1:], range(len(self.__units)))):
+            if index == len(self.__units) - 1:
                 is_output_unit = True
             else:
                 is_output_unit = False
@@ -454,20 +426,106 @@ class Network:
             for error in lerror:
                 input_weight_updates = [] 
                 for input in linput:
-                    input_weight_updates.append(self.learning_rate * error * input)
+                    input_weight_updates.append(self.__learning_rate * error * input)
                 unit_weight_updates.append(input_weight_updates)
             weight_updates.append(unit_weight_updates)
 
         # Compute the new weights
         weights = []
-        for unit, error, weight_update, index in itertools.izip(self.units, errors, weight_updates, range(len(self.units))):
+        for unit, error, weight_update, index in itertools.izip(self.__units, errors, weight_updates, range(len(self.__units))):
             weights.append(unit.compute_update(index, unit, outputs, error, weight_update, data, out_data))
         
         # update the weights with the newly compute_d ones
-        for unit, weight in itertools.izip(self.units, weights):
+        for unit, weight in itertools.izip(self.__units, weights):
             unit.set_weights(weight)
 
         # print '---------------------------'
+    
+
+    def get_structure(self):
+        """
+        Build a dictionary containing all the information related to
+        the structure of the current neural network.
+
+        :Returns:
+            struct : dictionary
+                Structure of the current neural network.
+        """
+        struct = {}
+        struct["learning_rate"] = self.__learning_rate
+        struct["nb_units"] = len(self.__units) + 1
+
+        struct["unit1_nbnodes"] = self.__nb_inputs
+        for id_unit, unit in zip(range(2,len(self.__units)+2), self.__units):
+            unit_name = "unit" + str(id_unit)
+            struct[unit_name + "_nbnodes"] = unit.get_node_nb()
+            activator = unit.get_activator()
+            struct[unit_name + "_activator"] = activator.get_name() 
+            updator = unit.get_updator()
+            struct[unit_name + "_updator"] = updator.get_name() 
+
+        return struct 
+
+
+    def set_structure(self, struct):
+        """
+        Set the internal structure of the network to the given information
+        dictionary.
+
+        :Parameters:
+            struct : dictionary
+                This dictionary must to contain:
+                    * learning_rate = the value of the learning rate
+                    * nb_units = number of internal units
+                    * unit1_nbnodes = number of nodes in the input unit
+                And for each of the non-input units:
+                    * unit#_nbnodes = number of nodes in the #-th unit
+                    * unit#_activator = activator name in the #-th unit
+                    * unit#_updator = updator name in the #-th unit
+        """
+        self.reset()
+        self.__learning_rate = float(struct["learning_rate"])
+        self.__nb_inputs = int(struct["unit1_nbnodes"])
+
+        for id_unit in range(2, int(struct["nb_units"])+1):
+            unit_name = "unit" + str(id_unit)
+            nb_nodes = int(struct[unit_name + "_nbnodes"])
+
+            activator_name = struct[unit_name + "_activator"]
+            updator_name = struct[unit_name + "_updator"]
+
+            activator = Activator.build_instance_by_name(activator_name)
+            updator = Updator.build_instance_by_name(updator_name)
+
+            self.add_unit(nb_nodes, activator, updator) 
+
+    def get_weights(self):
+        """
+        Get the weights of the entire network as a sequence.
+
+        :Returns:
+            sequence : weights of the entire network
+        """
+
+        weights_network = []
+        for unit in self.__units:
+            weights_unit = unit.get_weights()
+            weights_network.append(weights_unit)
+        return weights_network
+
+
+    def set_weights(self,weights_network):
+        """
+        Set the weights of the entire network from a sequence.
+
+        :Parameters:
+            weights_network : sequence
+                weights of the entire network
+        """
+
+        for weights_unit, unit in zip(weights_network, self.__units):
+            unit.set_weights(weights_unit)
+
 
 if __name__ == "__main__":
     print "npy"

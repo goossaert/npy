@@ -29,9 +29,18 @@ class Updator:
     Abstract class for the gradient descent updating process
     """
 
+    # dictionary of the updators
+    __updators = {}
+    
     def __init__(self):
-        """Initializer."""
+        """
+        Initializer
+        """
+        self._name = None
         pass
+
+    def get_name(self):
+        return self._name
 
     def compute_update(self, unit, outputs, errors, weight_updates, data, out_data):
         """
@@ -57,6 +66,46 @@ class Updator:
         return None
 
 
+    def build_instance(self):
+        """
+        Build an instance of the current updator class.
+
+        :Returns:
+            An instance of the current updator class.
+        """
+        pass 
+
+
+    def build_instance_by_name(name):
+        """
+        Build an instance of the updator given in parameter.
+
+        :Parameters:
+            name : string
+                Name of the updator class to instanciate
+
+        :Returns:
+            An instance of the required updator.
+        """
+        # TODO What happens when the name is not in the dict?
+        return Updator.__updators[name].build_instance()
+    build_instance_by_name = staticmethod(build_instance_by_name)
+    
+    
+    def declare_updator(instance):
+        """
+        Add the name and an instance of a given activator in the general
+        activator list. It will be used when a network will be built from
+        a stream.
+
+        :Parameters:
+            instance : Updator
+                Instance of the updator
+        """
+        name = instance.get_name()
+        Updator.__updators[name] = instance 
+    declare_updator = staticmethod(declare_updator)
+
 
 class UpdatorBackpropagation(Updator):
     """
@@ -64,6 +113,7 @@ class UpdatorBackpropagation(Updator):
     """
 
     def __init__(self):
+        self._name = "up_backpropagation"
         pass
 
     def compute_update(self, index, unit, outputs, errors, weight_update, data, out_data): 
@@ -80,6 +130,9 @@ class UpdatorBackpropagation(Updator):
 
         return next_weights
 
+    def build_instance(self):
+        return UpdatorBackpropagation()
+
 
 
 class UpdatorTD(Updator):
@@ -88,6 +141,7 @@ class UpdatorTD(Updator):
     """
 
     def __init__(self):
+        self._name = "up_tdlearning"
         pass
 
     def compute_update__(self, Alpha, index, unit, outputs, errors, weight_update, data, out_data): 
@@ -119,3 +173,10 @@ class UpdatorTD(Updator):
         out_data.append(es)
 
         return next_weights
+    
+    def build_instance(self):
+        return UpdatorTD()
+
+# Declare the activators to the base class
+Updator.declare_updator(UpdatorBackpropagation())
+Updator.declare_updator(UpdatorTD())

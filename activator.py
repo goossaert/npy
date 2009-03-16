@@ -27,35 +27,34 @@ class Activator:
 
     **The two instance variables are not required when the object is
     created, but they MUST be initialized before it is used.**
-    
-    :IVariables:
-        error_hidden_unit : Error
-            Error class instance used in the case of a hidden unit.
-        error_output_unit : Error
-            Error class instance used in the case of an output unit.
     """
+    
+    # Dictionary of the activators
+    __activators = {}
 
-    def __init__(self, error_hidden_unit=None, error_output_unit=None):
+    def __init__(self):
         """
         Initializer.
-    
-        :Parameters:
-            error_hidden_unit : Error
-                Error class instance used in the case of a hidden unit.
-            error_output_unit : Error
-                Error class instance used in the case of an output unit.
         """
-        self.error_hidden_unit = error_hidden_unit
-        self.error_output_unit = error_output_unit
+        #   :PVariables:
+        #   __error_hidden_unit : Error
+        #       Error class instance used in the case of a hidden unit.
+        #   __error_output_unit : Error
+        #       Error class instance used in the case of an output unit.
+        #   _name : string
+        #       Name of the class 
+        self.__error_hidden_unit = None
+        self.__error_output_unit = None
+        self._name = None
 
+    def get_name(self):
+        return self._name
 
     def set_error_hidden_unit(self, error):
-        self.error_hidden_unit = error
-
+        self.__error_hidden_unit = error
 
     def set_error_output_unit(self, error):
-        self.error_output_unit = error
-
+        self.__error_output_unit = error
 
     def compute_activation(self, inputs, weights):
         """
@@ -114,11 +113,52 @@ class Activator:
             The errors. 
         """
         if is_output_unit == True:
-            error = self.error_output_unit
+            error = self.__error_output_unit
         else:
-            error = self.error_hidden_unit
+            error = self.__error_hidden_unit
 
         return error.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, self.compute_derivative)
+
+
+    def build_instance(self):
+        """
+        Build an instance of the current activator class.
+
+        :Returns:
+            An instance of the current activator class.
+        """
+        pass 
+
+
+    def build_instance_by_name(name):
+        """
+        Build an instance of the activator given in parameter.
+
+        :Parameters:
+            name : string
+                Name of the activator class to instanciate
+
+        :Returns:
+            An instance of the required activator.
+        """
+        # TODO What happens when the name is not in the dict?
+        return Activator.__activators[name].build_instance()
+    build_instance_by_name = staticmethod(build_instance_by_name)
+    
+    
+    def declare_activator(instance):
+        """
+        Add the name and an instance of a given activator in the general
+        activator list. It will be used when a network will be built from
+        a stream.
+
+        :Parameters:
+            instance : Activator
+                Instance of the activator
+        """
+        name = instance.get_name()
+        Activator.__activators[name] = instance 
+    declare_activator = staticmethod(declare_activator)
 
 
 class ActivatorLinear(Activator):
@@ -128,8 +168,9 @@ class ActivatorLinear(Activator):
 
     def __init__(self):
         error = ErrorDirectOutput()
-        self.error_hidden_unit = error 
-        self.error_output_unit = error
+        self.set_error_hidden_unit(error)
+        self.set_error_output_unit(error)
+        self._name = "ac_linear"
         pass
 
 
@@ -142,6 +183,8 @@ class ActivatorLinear(Activator):
     def compute_derivative(self, x):
         return 1
 
+    def build_instance(self):
+        return ActivatorLinear()
 
 from error import ErrorDirectOutput
 
@@ -152,8 +195,9 @@ class ActivatorPerceptron(Activator):
 
     def __init__(self):
         error = ErrorDirectOutput()
-        self.error_hidden_unit = error 
-        self.error_output_unit = error
+        self.set_error_hidden_unit(error)
+        self.set_error_output_unit(error)
+        self._name = "ac_perceptron"
         pass
 
 
@@ -169,6 +213,9 @@ class ActivatorPerceptron(Activator):
     def compute_derivative(self, x):
         return 1
 
+    def build_instance(self):
+        return ActivatorPerceptron()
+
 from error import ErrorWeightedSum
 from error import ErrorDirectOutput
 import math
@@ -183,9 +230,9 @@ class ActivatorSigmoid(Activator):
         Uses ErrorWeightedSum for the hidden unit and ErrorDirectOutput for
         the output unit.
         """
-        self.error_hidden_unit = ErrorWeightedSum()
-        self.error_output_unit = ErrorDirectOutput()
-
+        self.set_error_hidden_unit(ErrorWeightedSum())
+        self.set_error_output_unit(ErrorDirectOutput())
+        self._name = "ac_sigmoid"
 
     def compute_activation(self, inputs, weights):
         def mul(x, y): return x * y
@@ -204,3 +251,11 @@ class ActivatorSigmoid(Activator):
     def compute_derivative(self, x):
         return x * (1 - x)
 
+
+    def build_instance(self):
+        return ActivatorSigmoid()
+
+# Declare the activators to the base class
+Activator.declare_activator(ActivatorLinear())
+Activator.declare_activator(ActivatorPerceptron())
+Activator.declare_activator(ActivatorSigmoid())
