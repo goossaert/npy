@@ -21,6 +21,9 @@ __docformat__ = "restructuredtext en"
 ## along with npy.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from npy.labeler import LabelerMax
+
+
 class Activator:
     """
     Activator function class
@@ -41,59 +44,94 @@ class Activator:
         #       Error class instance used in the case of a hidden unit.
         #   __error_output_unit : Error
         #       Error class instance used in the case of an output unit.
-        #   _name : string
+        #   __labeler : Labeler
+        #       Labeler associated with the current activator.
+        #   __name : string
         #       Name of the class 
         self.__error_hidden_unit = None
         self.__error_output_unit = None
-        self._name = None
+        self.__labeler = None
+        self.__name = None
 
     def get_name(self):
-        return self._name
+        return self.__name
+
+    
+    def _set_name(self,name):
+        self.__name = name
+
 
     def set_error_hidden_unit(self, error):
         self.__error_hidden_unit = error
 
+
     def set_error_output_unit(self, error):
         self.__error_output_unit = error
 
+
+    def set_labeler(self, labeler):
+        self.__labeler = labeler
+
+
     def compute_activation(self, inputs, weights):
         """
-        Compute the value of the activation function.
+        Compute the value of the activation function
+        for the given sequences of inputs and weights.
+        **This method MUST NOT be overridden by subclasses.**
 
         :Parameters:
             inputs : sequence of floats
                 Input data to be treated by the activation function.
-            weights
+            weights : sequence of floats
                 Weights to be used by the activation function. 
 
         :Returns:
             Value of the activation function.
         """
-        return None
+        value = 0
+        for input, weight in zip(inputs, weights):
+            value = value + input * weight
+
+        return self.activation_function(value)
 
 
-    def compute_derivative(self, x):
+    def activation_function(self, x):
         """
-        Compute the derivative of the current activation function. 
+        Activation function. 
 
         :Parameters:
             x : float
-                TODO value of the variable for the derivative
+                input value
 
         :Returns:
-            float : the value of the derivative for the given x value.
+            float : the value of the activation function for the given x value.
         """
-        return None 
+        pass 
 
-    def compute_errors(self, is_output_unit, next_unit_errors, desired_output, outputs, next_unit_weights):
+
+    #def compute_derivative(self, x):
+    def activation_derivative(self, x):
+        """
+        Derivative of the activation function. 
+
+        :Parameters:
+            x : float
+                input value
+
+        :Returns:
+            float : the value of the activation derivative for the given
+            x value.
+        """
+        pass
+
+
+    def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, id_unit, nb_unit):
         """
         Compute the error, by choosing a different function whether the unit
         is a hidden unit or an output unit. **This method MUST NOT be
         overridden by subclasses.**
 
         :Parameters:
-            is_output_unit : boolean
-                True if the unit is an output unit, False if not.
             next_unit_errors
                 Errors of the next unit, sometimes necessary for the
                 computation.
@@ -101,23 +139,60 @@ class Activator:
                 Output desired for the current instance. This is the
                 output at the end of the process (TODO)
             outputs : sequence
-                All the output of the different layers. *At the
-                moment a layer receive this information, only the
-                output of the NEXT layers have been filled.*
+                All the output of the different units. *At the
+                moment a unit receive this information, only the
+                output of the NEXT units have been filled.*
             next_unit_weights
                 Weights of the next unit, that is to say on the
                 edges between the nodes of the current unit and
                 those of the next one.
+            id_unit : integer
+                Index of the unit currently being handled.
+            nb_unit : integer
+                Total number of units in the network, without the
+                input unit.
 
         :Returns:
             The errors. 
         """
-        if is_output_unit == True:
+        if id_unit == nb_unit - 1:
             error = self.__error_output_unit
         else:
             error = self.__error_hidden_unit
 
-        return error.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, self.compute_derivative)
+        return error.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, self.activation_derivative)
+   
+
+    def label_to_vector(self, label, nb_node):
+        """
+        Convert a label into a vector a network is supposed to produce.
+
+        :Parameters:
+            label : number
+                The label to convert.
+            nb_node : integer
+                The number of nodes in the output unit of the network.
+
+        :Returns:
+            sequence : the vector associated with the provided label.
+        """
+        return self.__labeler.label_to_vector(label, nb_node)
+
+
+    def vector_to_label(self, vector):
+        """
+        Convert a vector produced as an output by a network into a label. 
+        The number of nodes in the output unit is not given as a parameter
+        since this information can be derived from the length of the vector.
+
+        :Parameters:
+            vector : sequence
+                The vector produced as an output by a network.
+
+        :Returns:
+            number : the label associated with the vector.
+        """
+        return self.__labeler.vector_to_label(vector)
 
 
     def build_instance(self):
@@ -161,30 +236,32 @@ class Activator:
     declare_activator = staticmethod(declare_activator)
 
 
+
 class ActivatorLinear(Activator):
     """
     Linear activation function
     """
 
     def __init__(self):
-        error = ErrorDirectOutput()
-        self.set_error_hidden_unit(error)
-        self.set_error_output_unit(error)
-        self._name = "ac_linear"
+        Activator.__init__(self)
+        self.set_error_hidden_unit(ErrorDirectOutput())
+        self.set_error_output_unit(ErrorDirectOutput())
+        self.set_labeler(LabelerMax())
+        self._set_name("ac_linear")
         pass
 
 
-    def compute_activation(self, inputs, weights):
-        def mul(x, y): return x * y
-        def add_(x, y): return x + y
-        return reduce(add_, map(mul, inputs, weights))
+    def activation_function(self, x):
+        return x 
 
 
-    def compute_derivative(self, x):
+    def activation_derivative(self, x):
         return 1
+
 
     def build_instance(self):
         return ActivatorLinear()
+
 
 from error import ErrorDirectOutput
 
@@ -194,27 +271,28 @@ class ActivatorPerceptron(Activator):
     """
 
     def __init__(self):
-        error = ErrorDirectOutput()
-        self.set_error_hidden_unit(error)
-        self.set_error_output_unit(error)
-        self._name = "ac_perceptron"
+        Activator.__init__(self)
+        self.set_error_hidden_unit(ErrorDirectOutput())
+        self.set_error_output_unit(ErrorDirectOutput())
+        self.set_labeler(LabelerMax())
+        self._set_name("ac_perceptron")
         pass
 
 
-    def compute_activation(self, inputs, weights):
-        value = 0
-        for input, weight in zip(inputs, weights):
-            value = value + input * weight
-
-        if value > 0:   return 1
-        else:           return -1
+    def activation_function(self, x):
+        if x > 0:
+            return 1
+        else:
+            return -1
 
 
-    def compute_derivative(self, x):
+    def activation_derivative(self, x):
         return 1
+
 
     def build_instance(self):
         return ActivatorPerceptron()
+
 
 from error import ErrorWeightedSum
 from error import ErrorDirectOutput
@@ -230,32 +308,26 @@ class ActivatorSigmoid(Activator):
         Uses ErrorWeightedSum for the hidden unit and ErrorDirectOutput for
         the output unit.
         """
+        Activator.__init__(self)
         self.set_error_hidden_unit(ErrorWeightedSum())
         self.set_error_output_unit(ErrorDirectOutput())
-        self._name = "ac_sigmoid"
-
-    def compute_activation(self, inputs, weights):
-        def mul(x, y): return x * y
-        def add_(x, y): return x + y
-        def sigmoid(x): return 1 /(1 + math.exp(-x))
-
-        value = 0
-        for input, weight in zip(inputs, weights):
-            value = value + input * weight
-
-        # value = reduce(add_, map(mul, inputs, weights))
-        value = sigmoid(value) 
-        return value 
+        self.set_labeler(LabelerMax())
+        self._set_name("ac_sigmoid")
 
 
-    def compute_derivative(self, x):
+    def activation_function(self, x):
+        return 1 / (1 + math.exp(-x))
+
+
+    def activation_derivative(self, x):
         return x * (1 - x)
 
 
     def build_instance(self):
         return ActivatorSigmoid()
 
-# Declare the activators to the base class
+
+# Declare the activators to the Activator class
 Activator.declare_activator(ActivatorLinear())
 Activator.declare_activator(ActivatorPerceptron())
 Activator.declare_activator(ActivatorSigmoid())

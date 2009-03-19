@@ -127,7 +127,7 @@ class NetworkIOCSV:
         # problems if the users use this as a semantic assumption in their code.
 
         # Build the sequence that will be filled with weights
-        weights_network = network.get_weights()
+        weight_network = network.get_weights()
        
         # TODO exception file exists
         filename = self.__stream + "_wgt.csv" 
@@ -149,10 +149,10 @@ class NetworkIOCSV:
             id_node = int(row[fields["id_node"]]) - 1
             id_weight = int(row[fields["id_weight"]]) - 1
             weight = float(row[fields["weight"]])
-            weights_network[id_unit][id_node][id_weight] = weight
+            weight_network[id_unit][id_node][id_weight] = weight
 
         # Set the new weights to the network
-        network.set_weights(weights_network) 
+        network.set_weights(weight_network) 
 
 
     def write_weights(self,network):
@@ -165,7 +165,7 @@ class NetworkIOCSV:
         """
        
         # Retrieve the weights and prepare the table
-        weights_network = network.get_weights()
+        weight_network = network.get_weights()
         table = []
 
         # Fill the first row with the field names
@@ -173,9 +173,9 @@ class NetworkIOCSV:
 
         # Since the input unit is #1, the id_unit range has to be shifted
         # from a value of 2 and not 1 as this is the case for the other ids.
-        for id_unit, weights_unit in zip(range(2,len(weights_network)+2), weights_network):
-            for id_node, weights_node in zip(range(1,len(weights_unit)+1), weights_unit):
-                for id_weight, weight in zip(range(1,len(weights_node)+1), weights_node):
+        for id_unit, weight_unit in zip(range(2,len(weight_network)+2), weight_network):
+            for id_node, weight_node in zip(range(1,len(weight_unit)+1), weight_unit):
+                for id_weight, weight in zip(range(1,len(weight_node)+1), weight_node):
                     table.append([id_unit, id_node, id_weight, weight])
 
         # TODO exception file exists

@@ -36,11 +36,19 @@ class Updator:
         """
         Initializer
         """
-        self._name = None
-        pass
+        #   :PVariables:
+        #   __name : string
+        #       Name of the class 
+        self.__name = None 
+
 
     def get_name(self):
-        return self._name
+        return self.__name
+
+
+    def _set_name(self,name):
+        self.__name = name
+
 
     def compute_update(self, unit, outputs, errors, weight_updates, data, out_data):
         """
@@ -113,8 +121,9 @@ class UpdatorBackpropagation(Updator):
     """
 
     def __init__(self):
-        self._name = "up_backpropagation"
-        pass
+        Updator.__init__(self)
+        self._set_name("up_backpropagation")
+
 
     def compute_update(self, index, unit, outputs, errors, weight_update, data, out_data): 
         #inlearning_rate = 0.10
@@ -130,6 +139,7 @@ class UpdatorBackpropagation(Updator):
 
         return next_weights
 
+
     def build_instance(self):
         return UpdatorBackpropagation()
 
@@ -141,8 +151,9 @@ class UpdatorTD(Updator):
     """
 
     def __init__(self):
-        self._name = "up_tdlearning"
-        pass
+        Updator.__init__(self)
+        self._set_name("up_tdlearning")
+
 
     def compute_update__(self, Alpha, index, unit, outputs, errors, weight_update, data, out_data): 
 
@@ -177,6 +188,6 @@ class UpdatorTD(Updator):
     def build_instance(self):
         return UpdatorTD()
 
-# Declare the activators to the base class
+# Declare the activators to the Updator class
 Updator.declare_updator(UpdatorBackpropagation())
 Updator.declare_updator(UpdatorTD())

@@ -25,6 +25,8 @@ import math
 import itertools
 import random
 
+from npy.data import DataCollection
+from npy.data import DataInstance
 
 class Node:
     """
@@ -114,8 +116,10 @@ class Unit:
             node = Node(previous_node_nb)
             self.__nodes.append(node)
 
+
     def get_node_nb(self):
         return len(self.__nodes) 
+
 
     def get_weights(self):
         """
@@ -132,6 +136,7 @@ class Unit:
             weights.append(node.get_weights())
         return weights
 
+
     def set_weights(self, weights):
         """
         Set the weights of all the nodes of the current unit. 
@@ -145,17 +150,22 @@ class Unit:
             node.set_weights(weight)
         #self.Nodes[index].set_weights(weights)
 
+
     def set_activator(self, activator):
         self.__activator = activator
+
 
     def get_activator(self):
         return self.__activator
 
+
     def set_updator(self, updator):
         self.__updator = updator
 
+
     def get_updator(self):
         return self.__updator
+
 
     def load_values(self, values):
         """
@@ -206,13 +216,11 @@ class Unit:
         """
         return self.__activator.compute_activation(inputs, weights)
     
-    def compute_errors(self, is_output_unit, next_unit_errors, desired_output, outputs, next_unit_weights):
+    def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, id_unit, nb_unit):
         """
         Compute the error. 
 
         :Parameters:
-            is_output_unit : boolean
-                True if the unit is an output unit, False if not.
             next_unit_errors
                 Errors of the next unit, sometimes necessary for the
                 computation.
@@ -227,13 +235,18 @@ class Unit:
                 Weights of the next unit, that is to say on the
                 edges between the nodes of the current unit and
                 those of the next one.
+            id_unit : integer
+                Index of the unit currently being handled.
+            nb_unit : integer
+                Total number of units in the network, without the
+                input unit.
 
         :Returns:
-            The errors.
+            The error_network.
         """
-        return self.__activator.compute_errors(is_output_unit, next_unit_errors, desired_output, outputs, next_unit_weights)
+        return self.__activator.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, id_unit, nb_unit)
 
-    def compute_update(self, index, unit, outputs, errors, weight_updates, data, out_data): 
+    def compute_update(self, index, unit, outputs, error_network, update_network, data, out_data): 
         """
         Compute the update to be applied, given the provided parameters. 
 
@@ -244,9 +257,9 @@ class Unit:
                 Network unit to which the update has to be applied.
             outputs : sequence of sequences
                 The outputs of each unit.
-            errors : sequence
+            error_network : sequence
                 Error values.
-            weight_updates : sequence
+            update_network : sequence
                 Update values for the weights.
             data
                 Data input, to be filled by the user if necessary.
@@ -256,7 +269,39 @@ class Unit:
         :Returns:
             The new values for the weights, after having applied the updates. 
         """
-        return self.__updator.compute_update(index, unit, outputs, errors, weight_updates, data, out_data)
+        return self.__updator.compute_update(index, unit, outputs, error_network, update_network, data, out_data)
+   
+
+    def label_to_vector(self, label):
+        """
+        Convert a label into a vector a network is supposed to produce.
+
+        :Parameters:
+            label : number
+                The label to convert.
+
+        :Returns:
+            sequence : the vector associated with the provided label.
+        """
+        return self.__activator.label_to_vector(label, len(self.__nodes))
+
+
+    def vector_to_label(self, vector):
+        """
+        Convert a vector produced as an output by a network into a label. 
+        The number of nodes in the output unit is not given as a parameter
+        since this information can be derived from the length of the vector.
+
+        :Parameters:
+            vector : sequence
+                The vector produced as an output by a network.
+
+        :Returns:
+            number : the label associated with the vector.
+        """
+        return self.__activator.vector_to_label(vector)
+
+
 
 
 from npy.activator import Activator
@@ -337,20 +382,20 @@ class Network:
         return unit
 
 
-    def compute_output(self, input):
+    def compute_output(self, instance):
         """
         Compute the output values of all the units for the network.
 
         :Parameters:
-            input : sequence of floats
-                Data used by the network to compute the outputs.
+            instance : DataInstance
+                Data instance used by the network to compute the outputs.
 
         :Returns:
             sequence of sequences floats : the output data of all the units
             of the network.
         """
-         
-        values = [input] 
+        
+        values = [instance.get_attributes()] 
         for unit in self.__units:
             # Add the bias value to the input
             values[-1].append(1)
@@ -359,25 +404,35 @@ class Network:
         return values
 
     
-    def compute(self, input):
+    def compute_label(self, instance):
         """
         Compute the output values for the network.
 
         :Parameters:
-            input : sequence of floats
-                Data used by the network to compute the outputs.
+            instance : DataInstance
+                Data instance used by the network to compute the outputs.
 
         :Returns:
-            sequence of floats : the output data of all output unit
-            of the network.
+            number : the label associated with the classification produced
+            by the network for the given instance.
         """
-        values = self.compute_output(input)
-        return values[-1]
+        values = self.compute_output(instance)
+        return self.vector_to_label(values[-1])
 
 
-    def learn(self, input, desired_output, data, out_data):
+    def learn_iteration(self, data_collection, nb_iteration):
         """
-        Makes the network learn based on the given input and desired output.
+        Makes the network learn the instances in the given data collection.
+        """
+
+        for i in range(nb_iteration):
+            for instance in data_collection.get_instances():
+                self.learn_instance(instance)
+
+
+    def learn_instance(self, instance, data=None, out_data=None):
+        """
+        Makes the network learn the given instance.
 
         :Parameters:
             input : sequence of floats
@@ -391,56 +446,82 @@ class Network:
                 and can be retrieved when the function ends.
         """
 
-        # Compute the outputs from the whole network
-        outputs = self.compute_output(input) 
+        # Transform this method into a template mothod: it will increase the cohesion.
 
-        # The 'None'  errors is just a dummy value
-        errors = [None]
+        desired_output = self.label_to_vector(instance.get_label())
+
+        # Compute the outputs from the whole network
+        outputs = self.compute_output(instance) 
+
+        # The 'None'  error_network is just a dummy value
+        error_network = [None]
         previous_weights = None
 
         # Compute the error values: it has to be done backward 
         for unit, output, index in reversed(zip(self.__units, outputs[1:], range(len(self.__units)))):
-            if index == len(self.__units) - 1:
-                is_output_unit = True
-            else:
-                is_output_unit = False
-
-            errors.append(unit.compute_errors(is_output_unit, errors[-1], desired_output, output, previous_weights))
+            error_network.append(unit.compute_errors(error_network[-1], desired_output, output, previous_weights, index, len(self.__units)))
             previous_weights = unit.get_weights()
       
         # The dummy 'None' can be deleted
-        del errors[0]
+        del error_network[0]
 
         # The right order is the converse
-        errors.reverse()
+        error_network.reverse()
 
         # The adding of the bias weights created useless error values
         # that have to be deleted 
-        for i in range(len(errors) - 1):
-            del errors[i][-1] 
+        for id_unit in range(len(error_network) - 1):
+            del error_network[id_unit][-1] 
 
         # Compute the weight_update values
-        weight_updates = []
-        for lerror, linput in itertools.izip(errors, outputs[:-1]):
-            unit_weight_updates = []
-            for error in lerror:
-                input_weight_updates = [] 
-                for input in linput:
-                    input_weight_updates.append(self.__learning_rate * error * input)
-                unit_weight_updates.append(input_weight_updates)
-            weight_updates.append(unit_weight_updates)
+        update_network = []
+        for error_unit, input_unit in itertools.izip(error_network, outputs[:-1]):
+            update_unit = []
+            for error_node in error_unit:
+                update_node = [] 
+                for input_node in input_unit:
+                    update_node.append(self.__learning_rate * error_node * input_node)
+                update_unit.append(update_node)
+            update_network.append(update_unit)
 
         # Compute the new weights
         weights = []
-        for unit, error, weight_update, index in itertools.izip(self.__units, errors, weight_updates, range(len(self.__units))):
-            weights.append(unit.compute_update(index, unit, outputs, error, weight_update, data, out_data))
-        
-        # update the weights with the newly compute_d ones
-        for unit, weight in itertools.izip(self.__units, weights):
-            unit.set_weights(weight)
+        for unit, error_unit, weight_update, index in itertools.izip(self.__units, error_network, update_network, range(len(self.__units))):
+            weights.append(unit.compute_update(index, unit, outputs, error_unit, weight_update, data, out_data))
+       
+        self.set_weights(weights)
 
-        # print '---------------------------'
     
+    def label_to_vector(self, label):
+        """
+        Convert a label into a vector a network is supposed to produce.
+
+        :Parameters:
+            label : number
+                The label to convert.
+
+        :Returns:
+            sequence : the vector associated with the provided label.
+        """
+        return self.__units[len(self.__units)-1].label_to_vector(label)
+
+
+    def vector_to_label(self, vector):
+        """
+        Convert a vector produced as an output by a network into a label. 
+        The number of nodes in the output unit is not given as a parameter
+        since this information can be derived from the length of the vector.
+
+        :Parameters:
+            vector : sequence
+                The vector produced as an output by a network.
+
+        :Returns:
+            number : the label associated with the vector.
+        """
+        return self.__units[len(self.__units) - 1].vector_to_label(vector)
+
+
 
     def get_structure(self):
         """
@@ -507,24 +588,24 @@ class Network:
             sequence : weights of the entire network
         """
 
-        weights_network = []
+        weight_network = []
         for unit in self.__units:
-            weights_unit = unit.get_weights()
-            weights_network.append(weights_unit)
-        return weights_network
+            weight_unit = unit.get_weights()
+            weight_network.append(weight_unit)
+        return weight_network
 
 
-    def set_weights(self,weights_network):
+    def set_weights(self,weight_network):
         """
         Set the weights of the entire network from a sequence.
 
         :Parameters:
-            weights_network : sequence
+            weight_network : sequence
                 weights of the entire network
         """
 
-        for weights_unit, unit in zip(weights_network, self.__units):
-            unit.set_weights(weights_unit)
+        for weight_unit, unit in zip(weight_network, self.__units):
+            unit.set_weights(weight_unit)
 
 
 if __name__ == "__main__":

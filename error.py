@@ -33,7 +33,7 @@ class Error:
         """Initializer"""
         pass
 
-    def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, fct_derivative):
+    def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, activation_derivative):
         """
         Compute the error. 
 
@@ -52,7 +52,7 @@ class Error:
                 Weights of the next unit, that is to say on the
                 edges between the nodes of the current unit and
                 those of the next one.
-            fct_derivative
+            activation_derivative
                 Derivative of the activation function.
 
         :Returns:
@@ -66,16 +66,14 @@ class ErrorDirectOutput(Error):
     """Output unit weight_update function class"""
 
     def __init__(self):
-        pass
+        Error.__init__(self)
 
-    def compute_errors(self, errors, desired_output, outputs, next_unit_weights, fct_derivative):
+    def compute_errors(self, errors, desired_output, outputs, next_unit_weights, activation_derivative):
     
         errors = [] 
-        for desired, compute_d in itertools.izip(desired_output, outputs):
-            # for sigmoid only!!!
-            errors.append(fct_derivative(compute_d) *(desired - compute_d))
-            #errors.append((desired - compute_d))
-        #  print 'desired', desired_output, 'compute_d', outputs
+        for desired, computed in itertools.izip(desired_output, outputs):
+            errors.append(activation_derivative(computed) * (desired - computed))
+
         return errors
 
 
@@ -83,9 +81,9 @@ class ErrorWeightedSum(Error):
     """Weighted sum error function class"""
 
     def __init__(self):
-        pass
+        Error.__init__(self)
 
-    def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, fct_derivative):
+    def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, activation_derivative):
         
         # Pre-allocate the error_sum list so that we can loop on it
         error_sum = []
@@ -97,10 +95,10 @@ class ErrorWeightedSum(Error):
             for weight, error_sum_id in itertools.izip(weights, range(len(error_sum))): 
                 error_sum[error_sum_id] = error_sum[error_sum_id] + nexterror * weight 
 
-        # Multiply by the derivative of the sigmoid function to get_ the final value
+        # Multiply by the derivative of the activation function
+        # to compute the final value
         errors = [] 
-        for currenterror, output in itertools.izip(error_sum, outputs):
-            errors.append(fct_derivative(output) * currenterror)
-            #errors.append(currenterror)
+        for currenterror, computed in itertools.izip(error_sum, outputs):
+            errors.append(activation_derivative(computed) * currenterror)
 
         return errors
