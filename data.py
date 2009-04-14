@@ -74,6 +74,7 @@ class DataCollection:
         """
 
         self.__instances = {}
+        self.__name_attribute = []
 
 
     def add_instance(self, instance):
@@ -118,6 +119,40 @@ class DataCollection:
             data.append(v)
 
         return data
+
+
+    def set_name_attribute(self, name_attribute):
+        self.__name_attribute = name_attribute 
+
+    def get_name_attribute(self, name_attribute):
+        return self.__name_attribute[:]
+
+
+class DataCollectionRAW(DataCollection):
+    """
+    Data collection RAW, to hold un-numerized and un-normalized data.
+    """
+    
+    def __init__(self):
+        """
+        Initializer
+        """
+
+        DataCollection.__init__(self);
+
+
+
+class DataCollectionPCD(DataCollection):
+    """
+    Data collection PROCESSEd, to hold numerized and normalized data.
+    """
+    
+    def __init__(self):
+        """
+        Initializer
+        """
+
+        DataCollection.__init__(self);
 
 
 

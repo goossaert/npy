@@ -33,12 +33,12 @@ class Node:
     Neural network Node
     """
 
-    def __init__(self, previous_node_nb):
+    def __init__(self, previous_nb_node):
         """
         Initializer
 
         :Parameters:
-            previous_node_nb : integer
+            previous_nb_node : integer
                 The number of the nodes in the previous unit.
         """
 
@@ -48,7 +48,7 @@ class Node:
         #           unit to the current node.
         self.__weights = []
        
-        for i in range(previous_node_nb):
+        for i in range(previous_nb_node):
             self.__weights.append(random.uniform(-1, 1)) 
 
 #        print 'weights', self.__weights
@@ -84,14 +84,14 @@ class Unit:
     Neural network unit class
     """
 
-    def __init__(self, node_nb, previous_node_nb, activator, updator):
+    def __init__(self, nb_node, previous_nb_node, activator, updator):
         """
         Initializer
 
         :Parameters:
-            node_nb : integer
+            nb_node : integer
                 Number of nodes required in the unit. 
-            previous_node_nb : integer
+            previous_nb_node : integer
                 Number of nodes in the previous unit.
             activator : Activator
                 Activator instance used to compute the activation function
@@ -112,12 +112,12 @@ class Unit:
         self.__activator = activator
         self.__updator = updator 
         
-        for i in range(node_nb):
-            node = Node(previous_node_nb)
+        for i in range(nb_node):
+            node = Node(previous_nb_node)
             self.__nodes.append(node)
 
 
-    def get_node_nb(self):
+    def get_nb_node(self):
         return len(self.__nodes) 
 
 
@@ -315,25 +315,18 @@ class Network:
     #   :PVariables:
     #       __units : sequence of Unit 
     #           Units of the network.
-    #       __nb_inputs : integer
+    #       __nb_input : integer
     #           Number of nodes in the input unit.
     #     
     #       __learning_rate : float
     #           Learning rate of the gradient descent process. 
 
-    def __init__(self,nb_inputs,learning_rate):
+    def __init__(self):
         """
         Initializer 
-
-        :Parameters:
-            nb_inputs : integer
-                Number of nodes in the input unit.
-            learning_rate : float
-                Learning rate of the gradient descent process. 
         """
-        self.__units = []
-        self.__nb_inputs = nb_inputs
-        self.__learning_rate = learning_rate
+        self.reset()
+
 
     def reset(self):
         """
@@ -341,24 +334,40 @@ class Network:
         to receive a new one.
         """
         self.__units = []
+        self.__nb_input = -1
+        self.__learning_rate = -1
+
 
     # TODO delete this, only used for debugging purposes
     def get_units(self):
         return self.__units
+
     
     def get_learning_rate(self):
         return self.__learning_rate
 
-    def set_learning_rate(self,learning_rate):
+
+    def set_learning_rate(self, learning_rate):
         self.__learning_rate = learning_rate
 
-    def add_unit(self, node_nb, activator, updator):
+
+    def get_nb_input(self):
+        return self.__nb_input
+
+
+    def set_nb_input(self, nb_input):
+        if nb_input <= 0:
+            pass # TODO throw exception
+        self.__nb_input = nb_input
+
+
+    def add_unit(self, nb_node, activator, updator):
         """
         Adds a unit to the network as the new output unit. Takes care of
         making the connections with the previous unit.
 
         :Parameters:
-            node_nb : integer
+            nb_node : integer
                 Number of nodes required in the unit. 
             activator : Activator
                 Activator instance used to compute the activation function
@@ -369,15 +378,18 @@ class Network:
         :Returns:
             The unit that has just been added to the network.
         """
+        if nb_node <= 0 or activator == None or updator == None:
+            pass # TODO throw exception
+
         if len(self.__units) == 0:
-            previous_nodes_nb = self.__nb_inputs
+            previous_nodes_nb = self.__nb_input
         else:
-            previous_nodes_nb = self.__units[-1].get_node_nb()
+            previous_nodes_nb = self.__units[-1].get_nb_node()
 
         # Add 1  order to implement the bias
         previous_nodes_nb = previous_nodes_nb + 1
 
-        unit = Unit(node_nb, previous_nodes_nb, activator, updator)
+        unit = Unit(nb_node, previous_nodes_nb, activator, updator)
         self.__units.append(unit)
         return unit
 
@@ -536,10 +548,10 @@ class Network:
         struct["learning_rate"] = self.__learning_rate
         struct["nb_units"] = len(self.__units) + 1
 
-        struct["unit1_nbnodes"] = self.__nb_inputs
+        struct["unit1_nbnodes"] = self.__nb_input
         for id_unit, unit in zip(range(2,len(self.__units)+2), self.__units):
             unit_name = "unit" + str(id_unit)
-            struct[unit_name + "_nbnodes"] = unit.get_node_nb()
+            struct[unit_name + "_nbnodes"] = unit.get_nb_node()
             activator = unit.get_activator()
             struct[unit_name + "_activator"] = activator.get_name() 
             updator = unit.get_updator()
@@ -566,7 +578,7 @@ class Network:
         """
         self.reset()
         self.__learning_rate = float(struct["learning_rate"])
-        self.__nb_inputs = int(struct["unit1_nbnodes"])
+        self.__nb_input = int(struct["unit1_nbnodes"])
 
         for id_unit in range(2, int(struct["nb_units"])+1):
             unit_name = "unit" + str(id_unit)
@@ -579,6 +591,7 @@ class Network:
             updator = Updator.build_instance_by_name(updator_name)
 
             self.add_unit(nb_nodes, activator, updator) 
+
 
     def get_weights(self):
         """

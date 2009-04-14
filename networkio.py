@@ -25,12 +25,12 @@ import csv
 import sys
 
 
-class NetworkIOCSV:
+class NetworkIO_CSV:
     """
     Neural network CSV input/output class 
     """
 
-    def __init__(self,stream=None):
+    def __init__(self, stream=None):
         """
         Initializer
         
@@ -39,9 +39,9 @@ class NetworkIOCSV:
                 Prefix of the CSV file to be used.
         """
         self.__stream = stream
-        self.stream = None
 
-    def set_stream(self,stream):
+
+    def set_stream(self, stream):
         """
         Setter for the stream
 
@@ -62,7 +62,7 @@ class NetworkIOCSV:
         return self.__stream
 
 
-    def read_structure(self,network):
+    def read_structure(self, network):
         """
         Read a structure and load it in a given neural network
 
@@ -83,12 +83,12 @@ class NetworkIOCSV:
         for field, value in zip(rows[0], rows[1]):
             struct[field] = value 
 
-        print struct
+        #print struct
 
         network.set_structure(struct)
 
 
-    def write_structure(self,network):
+    def write_structure(self, network):
         """
         Write the structure of a neural network to the stream
 
@@ -114,6 +114,7 @@ class NetworkIOCSV:
         csvwriter = csv.writer(file(filename, "w"))
         for row in table:
             csvwriter.writerow(row)
+
 
     def read_weights(self,network):
         """
