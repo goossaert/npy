@@ -39,8 +39,9 @@ class DataInstance:
             label : integer 
                 Value of the label given to the instance.
         """
+
         self.__id_number = id_number
-        self.__attributes = attributes
+        self.__attributes = tuple(attributes)
         #self.__outputs = outputs
         self.__label = label
 
@@ -50,7 +51,7 @@ class DataInstance:
 
 
     def get_attributes(self):
-        return self.__attributes[:]
+        return self.__attributes
 
 
     #def get_outputs(self):

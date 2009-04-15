@@ -101,12 +101,13 @@ class DataIO_CSV:
 
     def read(self, data_collection):
         """
-        Set the label of the id attribute
+        Read a CSV file and fill the provided DataCollectionRAW with instances.
 
         :Parameters:
             data_collection : DataCollectionRAW
                 Data Collection to be filled with the file content.
         """
+        # TODO check that data_collection is indeed a DataCollectionRAW
         
         # TODO exception file exists
         # Store the file content into a sequence

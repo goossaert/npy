@@ -567,7 +567,7 @@ class Network:
 
         :Parameters:
             struct : dictionary
-                This dictionary must to contain:
+                This dictionary must contain:
                     * learning_rate = the value of the learning rate
                     * nb_units = number of internal units
                     * unit1_nbnodes = number of nodes in the input unit
