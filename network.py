@@ -26,6 +26,8 @@ import random
 
 from npy.data import DataCollection
 from npy.data import DataInstance
+from npy.data import DataClassification
+from npy.data import DataClassified
 
 class Node:
     """
@@ -80,12 +82,12 @@ class Node:
 
 class Unit:
     """
-    Neural network unit class
+    Neural network unit class.
     """
 
     def __init__(self, nb_node, previous_nb_node, activator, updator):
         """
-        Initializer
+        Initializer.
 
         :Parameters:
             nb_node : integer
@@ -392,7 +394,7 @@ class Network:
         self.__units.append(unit)
         return unit
 
-    #TODO rename in compute_output_vector
+
     def compute_output(self, instance):
         """
         Compute the output values of all the units for the network.

@@ -26,20 +26,44 @@ from npy.data import DataCollectionRAW
 from npy.data import DataCollectionPCD
 from npy.data import DataInstance
 
-class DataNumerizer:
+class Numerizer:
     """
     Transforms a DataCollectionRAW into a DataCollectionPCD
     by transforming all the ordinal and categorical attributes
     into numerical interval attributes.
     """
 
-    def __init__(self):
-        """
-        Initializer
+    def __init__(self, dc_source):
+        """ 
+        Builds a DataNumerizer based on the data provided in dc_source.
+
+        :Parameters:
+            dc_source : DataCollectionRAW 
+                Data to use in order to build the numerizer.
         """
 
         self.__attributes = {}
         self.__label = {}
+
+        instances = dc_source.get_instances()
+        for instance in instances:
+            # Process the attribute values
+            for index, value in enumerate(instance.get_attributes()):
+                try:
+                    number = float(value)
+                except ValueError:
+                    # Every time a non-float attribute value is met,
+                    # it is added to the numerizer
+                    self.__add_value_for_attribute(value, index) 
+
+            # Process the label value
+            label = instance.get_label()
+            try:
+                number = float(label)
+            except ValueError:
+                # Every time a non-float label value is met,
+                # it is added to the numerizer
+                self.__add_value_for_label(label)
 
 
     def __add_value_for_attribute(self, value_attribute, index_attribute):
@@ -113,43 +137,6 @@ class DataNumerizer:
             
         return string_label
 
-    @staticmethod
-    def build_numerizer(dc_source):
-        """ 
-        Builds a DataNumerizer based on the data provided in dc_source.
-
-        :Parameters:
-            dc_source : DataCollectionRAW 
-                Data to use in order to build the numerizer.
-
-        :Returns:
-            DataNumerizer : the DataNumerizer built from dc_source.
-        """
-
-        numerizer = DataNumerizer()
-
-        instances = dc_source.get_instances()
-        for instance in instances:
-            # Process the attribute values
-            for index, value in enumerate(instance.get_attributes()):
-                try:
-                    number = float(value)
-                except ValueError:
-                    # Every time a non-float attribute value is met,
-                    # it is added to the numerizer
-                    numerizer.__add_value_for_attribute(value, index) 
-
-            # Process the label value
-            label = instance.get_label()
-            try:
-                number = float(label)
-            except ValueError:
-                # Every time a non-float label value is met,
-                # it is added to the numerizer
-                numerizer.__add_value_for_label(label)
-
-        return numerizer
-
              
     def numerize(self, dc_source):
         """
@@ -168,6 +155,7 @@ class DataNumerizer:
             pass #TODO throw exception
 
         dc_dest = DataCollectionPCD()
+        dc_dest.set_name_attribute(dc_source.get_name_attribute())
 
         instances = dc_source.get_instances()
         for instance_old in instances:
@@ -200,70 +188,67 @@ class DataNumerizer:
 
 
 
-class DataNormalizer:
+class Normalizer:
     """
     Transforms a DataCollectionPCD into a DataCollectionPCD by transforming
     all the numerical values into values strictly contained into a given
     interval.
     """
 
-    def __init__(self, inf=0, sup=1):
+    def __init__(self, dc_source, inf=0, sup=1):
         """
-        Initializer
-        """
-        self.__inf = inf
-        self.__sup = sup
-        self.__min = None
-        self.__max = None
-
-    def set_inf(self, value):
-        self.__inf = value
-
-    def set_sup(self, value):
-        self.__sup = value
-
-    def __set_min(self, value_min):
-        self.__min = value_min
-
-    def __set_max(self, value_max):
-        self.__max = value_max
-
-    @staticmethod
-    def build_normalizer(dc_source):
-        """ 
         Builds a DataNormalizer based on the data provided in dc_source.
 
         :Parameters:
             dc_source : DataCollectionPCD 
                 Data to use in order to build the normalizer.
-
-        :Returns:
-            DataNormalizer : the DataNormalizer built from dc_source.
         """
         
         if not isinstance(dc_source, DataCollectionPCD):
             pass #TODO throw exception
 
-        normalizer = DataNormalizer()
+        self.__inf = float(inf)
+        self.__sup = float(sup)
+        self.__min = None
+        self.__max = None
 
         nb_attributes = dc_source.get_nb_attributes()
-        value_min = [ -sys.maxint for i in range(nb_attributes) ]
-        value_max = [  sys.maxint for i in range(nb_attributes) ]
+        value_min = [ float( sys.maxint) for i in range(nb_attributes) ]
+        value_max = [ float(-sys.maxint) for i in range(nb_attributes) ]
 
         instances = dc_source.get_instances()
         for instance in instances:
             # Process the attribute values
             for index, value in enumerate(instance.get_attributes()):
+                a = index
+                b = value
+                c = value_min[index] 
+                d = value_max[index] 
+
                 if value < value_min[index]:
-                    value_min[index] = value
+                    value_min[index] = float(value)
 
                 if value > value_max[index]:
-                    value_max[index] = value
+                    value_max[index] = float(value)
 
-        normalizer.__set_min(value_min)
-        normalizer.__set_max(value_max)
+        self.__set_min(value_min)
+        self.__set_max(value_max)
 
-        return normalizer
+             
+    def set_inf(self, value):
+        self.__inf = float(value)
+
+
+    def set_sup(self, value):
+        self.__sup = float(value)
+
+
+    def __set_min(self, value_min):
+        self.__min = value_min
+
+
+    def __set_max(self, value_max):
+        self.__max = value_max
 
              
     def normalize(self, dc_source):
@@ -279,6 +264,7 @@ class DataNormalizer:
             DataCollectionPCD : Data collection in which normalized intances have to be places.
         """
         dc_dest = DataCollectionPCD()
+        dc_dest.set_name_attribute(dc_source.get_name_attribute())
 
         instances = dc_source.get_instances()
         for instance_old in instances:
@@ -296,20 +282,24 @@ class DataNormalizer:
         return dc_dest
 
 
-
 class Filter:
     """
     Embed a Numerizer and a Normalizer.
     """
    
-    def __init__(self):
+    def __init__(self,dc_source,normalizer_inf=None,normalizer_sup=None):
         """
         Initializer.
         """
 
-        self.__numerizer = Numerizer()
-        self.__numerizer = Normalizer()
-        
+        self.__numerizer = Numerizer(dc_source)
+        dc_numerized = self.__numerizer.numerize(dc_source)
+
+        if normalizer_inf != None or normalizer_sup != None:
+            self.__normalizer = Normalizer(dc_numerized, normalizer_inf, normalizer_sup)
+        else:
+            self.__normalizer = Normalizer(dc_numerized)
+            
 
     def filter(self, dc_source):
         """
@@ -333,4 +323,4 @@ class Filter:
         Get the string value associated with the numeric value
         for the label.
         """
-        return numerizer.number_to_label(number)
+        return self.__numerizer.number_to_label(number)

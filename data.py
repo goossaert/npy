@@ -124,8 +124,10 @@ class DataCollection:
     def set_name_attribute(self, name_attribute):
         self.__name_attribute = tuple(name_attribute)
 
-    def get_name_attribute(self, name_attribute):
+
+    def get_name_attribute(self):
         return self.__name_attribute
+
 
     def get_nb_attributes(self):
         return len(self.__name_attribute)
@@ -241,7 +243,7 @@ class DataClassification:
         return self.__classified_instances[id_number]
 
 
-    def get_data_classified(self):
+    def get_classified_instances(self):
         """
         Get a sequence of the classified data contained in this classification.
 
