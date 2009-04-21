@@ -2,7 +2,6 @@
 Data manager module.
 """
 __docformat__ = "restructuredtext en"
-
 ## Copyright (c) 2009 Emmanuel Goossaert 
 ##
 ## This file is part of npy.
@@ -123,10 +122,14 @@ class DataCollection:
 
 
     def set_name_attribute(self, name_attribute):
-        self.__name_attribute = name_attribute 
+        self.__name_attribute = tuple(name_attribute)
 
     def get_name_attribute(self, name_attribute):
-        return self.__name_attribute[:]
+        return self.__name_attribute
+
+    def get_nb_attributes(self):
+        return len(self.__name_attribute)
+        
 
 
 class DataCollectionRAW(DataCollection):
@@ -145,7 +148,7 @@ class DataCollectionRAW(DataCollection):
 
 class DataCollectionPCD(DataCollection):
     """
-    Data collection PROCESSEd, to hold numerized and normalized data.
+    Data collection PROCESSED, to hold numerized and normalized data.
     """
     
     def __init__(self):
@@ -165,7 +168,7 @@ class DataClassified:
     made.
     """
 
-    def __init__(self, id_number, label):
+    def __init__(self, id_number, number_label, string_label):
         """
         Initializer
         
@@ -176,15 +179,20 @@ class DataClassified:
                 Value of the label given to the instance.
         """
         self.__id_number = id_number
-        self.__label = label
+        self.__number_label = number_label
+        self.__string_label = string_label
 
 
     def get_id_number(self):
         return self.__id_number
 
 
-    def get_label(self):
-        return self.__label
+    def get_number_label(self):
+        return self.__number_label
+
+
+    def get_string_label(self):
+        return self.__string_label
 
 
 
@@ -218,7 +226,7 @@ class DataClassification:
 
     def get_data_classified_by_id(self, id_number):
         """
-        Get a classified data from the collection from its id_number
+        Get a classified data from the collection from its id_number.
 
         :Parameters:
             id_number : integer

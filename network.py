@@ -1,8 +1,7 @@
 """
 Neural network module.
 """
-__docformat__ = "restructuredtext en"
-
+__docformat__ = "restructuredtext en" 
 ## Copyright (c) 2009 Emmanuel Goossaert 
 ##
 ## This file is part of npy.
@@ -393,7 +392,7 @@ class Network:
         self.__units.append(unit)
         return unit
 
-
+    #TODO rename in compute_output_vector
     def compute_output(self, instance):
         """
         Compute the output values of all the units for the network.
@@ -407,7 +406,7 @@ class Network:
             of the network.
         """
         
-        values = [instance.get_attributes()] 
+        values = [list(instance.get_attributes())] 
         for unit in self.__units:
             # Add the bias value to the input
             values[-1].append(1)
@@ -416,6 +415,7 @@ class Network:
         return values
 
     
+    #TODO rename in classify_instance
     def compute_label(self, instance):
         """
         Compute the output values for the network.
@@ -431,6 +431,34 @@ class Network:
         values = self.compute_output(instance)
         return self.vector_to_label(values[-1])
 
+
+    def classify_data_collection(self, data_collection, filter):
+        """
+        Classify a data collection.
+
+        :Parameters:
+            data_collection: DataCollection
+                Data collection to classify.
+            filter : Filter
+                Filter to use to filter the data 
+
+        :Returns:
+            DataClassification : Classification of the data collection
+            given in parameter.
+        """
+
+        data_classification = DataClassification()
+
+        instances = data_collection.get_instances()
+
+        for instance in instances:
+            number_label = self.compute_label(instance)
+            string_label = filter.number_to_label(number_label)
+            data_classified = DataClassified(instance.get_id_number(), number_label, string_label)
+            data_classification.add_data_classified(data_classified)
+
+        return data_classification
+        
 
     def learn_iteration(self, data_collection, nb_iteration):
         """
