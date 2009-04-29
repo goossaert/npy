@@ -30,7 +30,9 @@ class Error:
     """
 
     def __init__(self):
-        """Initializer"""
+        """
+        Initializer.
+        """
         pass
 
     def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, activation_derivative):

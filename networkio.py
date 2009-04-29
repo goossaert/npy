@@ -28,6 +28,11 @@ import sys
 class NetworkIO_CSV:
     """
     Neural network CSV input/output class 
+
+    :IVariables:
+        __stream : Stream 
+            Stream instance used for the I/O operations. In the case of this
+            CSV module, the stream is the prefix of the CSV file to be used.
     """
 
     def __init__(self, stream=None):

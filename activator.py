@@ -21,6 +21,10 @@ __docformat__ = "restructuredtext en"
 ## along with npy.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import math
+
+from error import ErrorDirectOutput
+from error import ErrorWeightedSum
 from npy.labeler import LabelerMax
 
 
@@ -30,28 +34,37 @@ class Activator:
 
     **The two instance variables are not required when the object is
     created, but they MUST be initialized before it is used.**
+    
+    :CVariables:
+        __updators : dictionary 
+            This dictionary associate one instance of each possible subclass
+            of Activator to a unique name. That way, one can create instances
+            of any subclass just by passing the name to the factory method.
+
+    :IVariables:
+        __name : string
+            Name of the subclass.
+        __error_hidden_unit : `Error`
+            Error class instance used in the case of a hidden unit.
+        __error_output_unit : `Error`
+            Error class instance used in the case of an output unit.
+        __labeler : `Labeler`
+            Labeler associated with the current activator.
     """
     
     # Dictionary of the activators
     __activators = {}
 
+
     def __init__(self):
         """
         Initializer.
         """
-        #   :PVariables:
-        #   __error_hidden_unit : Error
-        #       Error class instance used in the case of a hidden unit.
-        #   __error_output_unit : Error
-        #       Error class instance used in the case of an output unit.
-        #   __labeler : Labeler
-        #       Labeler associated with the current activator.
-        #   __name : string
-        #       Name of the class 
         self.__error_hidden_unit = None
         self.__error_output_unit = None
         self.__labeler = None
         self.__name = None
+
 
     def get_name(self):
         return self.__name
@@ -263,7 +276,6 @@ class ActivatorLinear(Activator):
         return ActivatorLinear()
 
 
-from error import ErrorDirectOutput
 
 class ActivatorPerceptron(Activator):
     """
@@ -294,9 +306,6 @@ class ActivatorPerceptron(Activator):
         return ActivatorPerceptron()
 
 
-from error import ErrorWeightedSum
-from error import ErrorDirectOutput
-import math
 
 class ActivatorSigmoid(Activator):
     """

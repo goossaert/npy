@@ -28,6 +28,20 @@ from npy.data import DataInstance
 class DataIO_CSV:
     """
     Data CSV input/output class 
+    
+    :IVariables:
+        __stream : Stream 
+            Stream instance used for the I/O operations. In the case of this
+            CSV module, the stream is the prefix of the CSV file to be used.
+        __attribute_id : string
+            Name of the attribute that contains the index field in the
+            stream.
+        __attribute_label : string
+            Name of the attribute that contains the label field in the
+            stream.
+        __null_values : sequence of strings
+            Strings that are to be considered as representing invalid
+            and/or missing values in the data set.
     """
 
     def __init__(self, stream=None, attribute_id=None, attribute_label=None, null_values=[]):
@@ -37,6 +51,15 @@ class DataIO_CSV:
         :Parameters:
             stream : string 
                 Prefix of the CSV file to be used.
+            attribute_id : string
+                Name of the attribute that contains the index field in the
+                stream.
+            attribute_label : string
+                Name of the attribute that contains the label field in the
+                stream.
+            null_values : sequence of strings
+                Strings that are to be considered as representing invalid
+                and/or missing values in the data set.
         """
         self.__stream = stream
         self.__attribute_id = attribute_id

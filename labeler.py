@@ -99,17 +99,17 @@ class LabelerMax(Labeler):
 
 
     def vector_to_label(self, vector):
-        max_index = 0
+        index_max = 0
         if len(vector) == 1:
             if(vector[0] >= .5):
                 label = 2
             else:
                 label = 1
         else:
-            for i in range(1, len(vector)):
-                if vector[i] > vector[max_index]:
-                    max_index = i
-            label = max_index + 1
+            for index in range(1, len(vector)):
+                if vector[index] > vector[index_max]:
+                    index_max = index
+            label = index_max + 1
         
         return label
 

@@ -27,6 +27,16 @@ import itertools
 class Updator:
     """
     Abstract class for the gradient descent updating process
+
+    :CVariables:
+        __updators : dictionary 
+            This dictionary associate one instance of each possible subclass
+            of Updator to a unique name. That way, one can create instances
+            of any subclass just by passing the name to the factory method.
+
+    :IVariables:
+        __name : string
+            Name of the subclass.
     """
 
     # dictionary of the updators
@@ -36,9 +46,6 @@ class Updator:
         """
         Initializer
         """
-        #   :PVariables:
-        #   __name : string
-        #       Name of the class 
         self.__name = None 
 
 
@@ -84,6 +91,7 @@ class Updator:
         pass 
 
 
+    @staticmethod
     def build_instance_by_name(name):
         """
         Build an instance of the updator given in parameter.
@@ -97,9 +105,10 @@ class Updator:
         """
         # TODO What happens when the name is not in the dict?
         return Updator.__updators[name].build_instance()
-    build_instance_by_name = staticmethod(build_instance_by_name)
+    #build_instance_by_name = staticmethod(build_instance_by_name)
     
     
+    @staticmethod
     def declare_updator(instance):
         """
         Add the name and an instance of a given activator in the general
@@ -112,7 +121,7 @@ class Updator:
         """
         name = instance.get_name()
         Updator.__updators[name] = instance 
-    declare_updator = staticmethod(declare_updator)
+    #declare_updator = staticmethod(declare_updator)
 
 
 class UpdatorBackpropagation(Updator):
@@ -155,7 +164,7 @@ class UpdatorTD(Updator):
         self._set_name("up_tdlearning")
 
 
-    def compute_update__(self, Alpha, index, unit, outputs, errors, weight_update, data, out_data): 
+    def compute_update(self, Alpha, index, unit, outputs, errors, weight_update, data, out_data): 
 
         vgamma  = 0.001
         vlambda = 0.1
@@ -185,8 +194,10 @@ class UpdatorTD(Updator):
 
         return next_weights
     
+
     def build_instance(self):
         return UpdatorTD()
+
 
 # Declare the activators to the Updator class
 Updator.declare_updator(UpdatorBackpropagation())

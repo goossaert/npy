@@ -31,7 +31,12 @@ from npy.data import DataClassified
 
 class Node:
     """
-    Neural network Node
+    Neural network Node.
+
+    :IVariables:
+        __weights : sequence of floats
+            The weights on the edges from each of the nodes from the previous
+            unit to the current node.
     """
 
     def __init__(self, previous_nb_node):
@@ -42,11 +47,6 @@ class Node:
             previous_nb_node : integer
                 The number of the nodes in the previous unit.
         """
-
-        #   :IVariables:
-        #       weights : sequence of floats
-        #           The weights on the edges from each of the nodes from the previous
-        #           unit to the current node.
         self.__weights = []
        
         for i in range(previous_nb_node):
@@ -83,6 +83,15 @@ class Node:
 class Unit:
     """
     Neural network unit class.
+
+    :IVariables:
+        __nodes : sequence of Node
+            Nodes in the current unit. 
+        __activator : Activator
+            Activator instance used to compute the activation function
+            for the current unit.
+        __updator : Updator
+            Updator instance used to compute the updates to the weights.
     """
 
     def __init__(self, nb_node, previous_nb_node, activator, updator):
@@ -101,14 +110,6 @@ class Unit:
                 Updator instance used to compute the updates to the weights.
         """
 
-        #   :PVariables:
-        #   nodes : sequence of Node
-        #       Nodes in the current unit. 
-        #   activator : Activator
-        #       Activator instance used to compute the activation function
-        #       for the current unit.
-        #   updator : Updator
-        #       Updator instance used to compute the updates to the weights.
         self.__nodes = []
         self.__activator = activator
         self.__updator = updator 
@@ -311,27 +312,29 @@ from npy.updator import Updator
 
 class Network:
     """
-    Neural network class
-    """ 
-    #   :PVariables:
-    #       __units : sequence of Unit 
-    #           Units of the network.
-    #       __nb_input : integer
-    #           Number of nodes in the input unit.
-    #     
-    #       __learning_rate : float
-    #           Learning rate of the gradient descent process. 
+    Neural network class.
 
-    def __init__(self):
+    :IVariables:
+        __units : sequence of `Unit`
+            Units of the network.
+        __nb_input : integer
+            Number of nodes in the input unit.
+        __learning_rate : float
+            Learning rate of the gradient descent process. 
+    """
+
+    def __init__(self,nb_input=-1,learning_rate=-1):
         """
-        Initializer 
+        Initializer.
         """
-        self.reset()
+        self.__units = []
+        self.__nb_input = nb_input
+        self.__learning_rate = learning_rate
 
 
     def reset(self):
         """
-        Deleted the internal structure of the network, making it ready
+        Delete the internal structure of the network, making it ready
         to receive a new one.
         """
         self.__units = []
@@ -370,14 +373,14 @@ class Network:
         :Parameters:
             nb_node : integer
                 Number of nodes required in the unit. 
-            activator : Activator
-                Activator instance used to compute the activation function
+            activator : `Activator`
+                `Activator` instance used to compute the activation function
                 for the current unit.
-            updator : Updator
-                Updator instance used to compute the updates to the weights.
+            updator : `Updator`
+                `Updator` instance used to compute the updates to the weights.
 
         :Returns:
-            The unit that has just been added to the network.
+            The `Unit` that has just been added to the network.
         """
         if nb_node <= 0 or activator == None or updator == None:
             pass # TODO throw exception
@@ -400,12 +403,12 @@ class Network:
         Compute the output values of all the units for the network.
 
         :Parameters:
-            instance : DataInstance
-                Data instance used by the network to compute the outputs.
+            instance : `DataInstance`
+                `DataInstance` used by the network to compute the outputs.
 
         :Returns:
-            sequence of sequences floats : the output data of all the units
-            of the network.
+            sequence of sequences of floats : the output data of all the
+            `Unit` of the network.
         """
         
         values = [list(instance.get_attributes())] 
@@ -423,8 +426,8 @@ class Network:
         Compute the output values for the network.
 
         :Parameters:
-            instance : DataInstance
-                Data instance used by the network to compute the outputs.
+            instance : `DataInstance`
+                `DataInstance` used by the network to compute the outputs.
 
         :Returns:
             number : the label associated with the classification produced
@@ -436,16 +439,16 @@ class Network:
 
     def classify_data_collection(self, data_collection, filter):
         """
-        Classify a data collection.
+        Classify a `DataCollection`.
 
         :Parameters:
-            data_collection: DataCollection
-                Data collection to classify.
+            data_collection: `DataCollection`
+                `DataCollection` to classify.
             filter : Filter
-                Filter to use to filter the data 
+                `Filter` to use to filter the data 
 
         :Returns:
-            DataClassification : Classification of the data collection
+            `DataClassification` : Classification of the `DataCollection`
             given in parameter.
         """
 
@@ -464,7 +467,7 @@ class Network:
 
     def learn_iteration(self, data_collection, nb_iteration):
         """
-        Makes the network learn the instances in the given data collection.
+        Makes the network learn the instances of the given `DataCollection`.
         """
 
         for i in range(nb_iteration):
@@ -474,7 +477,7 @@ class Network:
 
     def learn_instance(self, instance, data=None, out_data=None):
         """
-        Makes the network learn the given instance.
+        Makes the network learn the given `Instance`.
 
         :Parameters:
             input : sequence of floats

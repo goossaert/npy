@@ -41,7 +41,6 @@ class DataInstance:
 
         self.__id_number = id_number
         self.__attributes = tuple(attributes)
-        #self.__outputs = outputs
         self.__label = label
 
 
@@ -51,10 +50,6 @@ class DataInstance:
 
     def get_attributes(self):
         return self.__attributes
-
-
-    #def get_outputs(self):
-    #    return self.__outputs
 
 
     def get_label(self):
@@ -177,8 +172,10 @@ class DataClassified:
         :Parameters:
             id_number : integer
                 Id number for the classified instance.
-            label : integer 
-                Value of the label given to the instance.
+            number_label : integer 
+                Numeric value of the label given to the instance.
+            string_label : integer 
+                String value of the label given to the instance.
         """
         self.__id_number = id_number
         self.__number_label = number_label
