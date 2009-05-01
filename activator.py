@@ -138,7 +138,7 @@ class Activator:
         pass
 
 
-    def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, id_unit, nb_unit):
+    def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit):
         """
         Compute the error, by choosing a different function whether the unit
         is a hidden unit or an output unit. **This method MUST NOT be
@@ -159,7 +159,7 @@ class Activator:
                 Weights of the next unit, that is to say on the
                 edges between the nodes of the current unit and
                 those of the next one.
-            id_unit : integer
+            index_unit : integer
                 Index of the unit currently being handled.
             nb_unit : integer
                 Total number of units in the network, without the
@@ -168,7 +168,7 @@ class Activator:
         :Returns:
             The errors. 
         """
-        if id_unit == nb_unit - 1:
+        if index_unit == nb_unit - 1:
             error = self.__error_output_unit
         else:
             error = self.__error_hidden_unit

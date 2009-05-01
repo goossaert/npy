@@ -26,12 +26,12 @@ class DataInstance:
     that could be required: id, attributes and label.
     """
 
-    def __init__(self, id_number, attributes, label):
+    def __init__(self, index_number, attributes, label):
         """
         Initializer
             
         :Parameters:
-            id_number : integer
+            index_number : integer
                 Id number for this instance.
             attributes : sequence of floats
                 Attributes to be used as inputs.
@@ -39,13 +39,13 @@ class DataInstance:
                 Value of the label given to the instance.
         """
 
-        self.__id_number = id_number
+        self.__index_number = index_number
         self.__attributes = tuple(attributes)
         self.__label = label
 
 
-    def get_id_number(self):
-        return self.__id_number
+    def get_index_number(self):
+        return self.__index_number
 
 
     def get_attributes(self):
@@ -82,15 +82,15 @@ class DataCollection:
         """
 
         # TODO throw an exception if the id is already in the dictionary, and update the doc to tell we throw an exception.
-        self.__instances[instance.get_id_number()] = instance
+        self.__instances[instance.get_index_number()] = instance
 
 
-    def get_instance_by_id(self, id_number):
+    def get_instance_by_id(self, index_number):
         """
-        Get an instance from the collection from its id_number
+        Get an instance from the collection from its index_number
 
         :Parameters:
-            id_number : integer
+            index_number : integer
                Id number of the instance to be retrieved.
 
         :Returns:
@@ -98,7 +98,7 @@ class DataCollection:
         """
 
         # TODO throw an exception if the id in not in the dictionary, and update the doc to tell we throw an exception.
-        return self.__instances[id_number]
+        return self.__instances[index_number]
 
 
     def get_instances(self):
@@ -165,25 +165,25 @@ class DataClassified:
     made.
     """
 
-    def __init__(self, id_number, number_label, string_label):
+    def __init__(self, index_number, number_label, string_label):
         """
         Initializer
         
         :Parameters:
-            id_number : integer
+            index_number : integer
                 Id number for the classified instance.
             number_label : integer 
                 Numeric value of the label given to the instance.
             string_label : integer 
                 String value of the label given to the instance.
         """
-        self.__id_number = id_number
+        self.__index_number = index_number
         self.__number_label = number_label
         self.__string_label = string_label
 
 
-    def get_id_number(self):
-        return self.__id_number
+    def get_index_number(self):
+        return self.__index_number
 
 
     def get_number_label(self):
@@ -220,15 +220,15 @@ class DataClassification:
 
         # TODO throw an exception if the id is already in the dictionary, and update the doc to tell we throw an exception.
 
-        self.__classified_instances[data_classified.get_id_number()] = data_classified
+        self.__classified_instances[data_classified.get_index_number()] = data_classified
 
 
-    def get_data_classified_by_id(self, id_number):
+    def get_data_classified_by_id(self, index_number):
         """
-        Get a classified data from the collection from its id_number.
+        Get a classified data from the collection from its index_number.
 
         :Parameters:
-            id_number : integer
+            index_number : integer
                Id number of the classified data to be retrieved.
 
         :Returns:
@@ -237,7 +237,7 @@ class DataClassification:
 
         # TODO throw an exception if the id in not in the dictionary, and update the doc to tell we throw an exception.
 
-        return self.__classified_instances[id_number]
+        return self.__classified_instances[index_number]
 
 
     def get_classified_instances(self):

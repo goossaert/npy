@@ -204,7 +204,7 @@ class Numerizer:
                 # it is added to the numerizer
                 label_new = self.label_to_number(label_old)
 
-            instance_new = DataInstance(instance_old.get_id_number(), attributes, label_new)
+            instance_new = DataInstance(instance_old.get_index_number(), attributes, label_new)
             dc_dest.add_instance(instance_new)             
 
         return dc_dest 
@@ -308,7 +308,7 @@ class Normalizer:
                 value_new = (value - self.__min[index]) * self.__max[index] * (self.__upper_bound - self.__lower_bound) + self.__lower_bound
                 attributes_new.append(value_new)
 
-            instance_new = DataInstance(instance_old.get_id_number(), attributes_new, instance_old.get_label())
+            instance_new = DataInstance(instance_old.get_index_number(), attributes_new, instance_old.get_label())
             dc_dest.add_instance(instance_new)             
 
         return dc_dest

@@ -218,7 +218,7 @@ class Unit:
         """
         return self.__activator.compute_activation(inputs, weights)
     
-    def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, id_unit, nb_unit):
+    def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit):
         """
         Compute the error. 
 
@@ -237,7 +237,7 @@ class Unit:
                 Weights of the next unit, that is to say on the
                 edges between the nodes of the current unit and
                 those of the next one.
-            id_unit : integer
+            index_unit : integer
                 Index of the unit currently being handled.
             nb_unit : integer
                 Total number of units in the network, without the
@@ -246,7 +246,7 @@ class Unit:
         :Returns:
             The error_network.
         """
-        return self.__activator.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, id_unit, nb_unit)
+        return self.__activator.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit)
 
     def compute_update(self, index, unit, outputs, error_network, update_network, data, out_data): 
         """
@@ -459,7 +459,7 @@ class Network:
         for instance in instances:
             number_label = self.compute_label(instance)
             string_label = filter.number_to_label(number_label)
-            data_classified = DataClassified(instance.get_id_number(), number_label, string_label)
+            data_classified = DataClassified(instance.get_index_number(), number_label, string_label)
             data_classification.add_data_classified(data_classified)
 
         return data_classification
@@ -515,8 +515,8 @@ class Network:
 
         # The adding of the bias weights created useless error values
         # that have to be deleted 
-        for id_unit in range(len(error_network) - 1):
-            del error_network[id_unit][-1] 
+        for index_unit in range(len(error_network) - 1):
+            del error_network[index_unit][-1] 
 
         # Compute the weight_update values
         update_network = []
@@ -582,8 +582,8 @@ class Network:
         struct["nb_units"] = len(self.__units) + 1
 
         struct["unit1_nbnodes"] = self.__nb_input
-        for id_unit, unit in zip(range(2,len(self.__units)+2), self.__units):
-            unit_name = "unit" + str(id_unit)
+        for index_unit, unit in zip(range(2,len(self.__units)+2), self.__units):
+            unit_name = "unit" + str(index_unit)
             struct[unit_name + "_nbnodes"] = unit.get_nb_node()
             activator = unit.get_activator()
             struct[unit_name + "_activator"] = activator.get_name() 
@@ -613,8 +613,8 @@ class Network:
         self.__learning_rate = float(struct["learning_rate"])
         self.__nb_input = int(struct["unit1_nbnodes"])
 
-        for id_unit in range(2, int(struct["nb_units"])+1):
-            unit_name = "unit" + str(id_unit)
+        for index_unit in range(2, int(struct["nb_units"])+1):
+            unit_name = "unit" + str(index_unit)
             nb_nodes = int(struct[unit_name + "_nbnodes"])
 
             activator_name = struct[unit_name + "_activator"]

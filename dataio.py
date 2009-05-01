@@ -184,11 +184,11 @@ class DataIO_CSV:
             if not index_id_found:
                 # If the file does not have instance indices, we simply
                 # make them based on the instance row index
-                id_instance = index_row
+                index_instance = index_row
             else:
-                id_instance = row[index_id]
+                index_instance = row[index_id]
 
             label = row[index_label]
 
-            instance = DataInstance(id_instance, value_attribute, label)
+            instance = DataInstance(index_instance, value_attribute, label)
             data_collection.add_instance(instance)

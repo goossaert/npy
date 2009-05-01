@@ -146,16 +146,16 @@ class NetworkIO_CSV:
 
         # Build the fieldname reference
         fields = {}
-        for id_field, field in zip(range(len(row_fields)), row_fields):
-            fields[field] = id_field
+        for index_field, field in zip(range(len(row_fields)), row_fields):
+            fields[field] = index_field
        
         # Fill the weight table
         for row in reader:
-            id_unit = int(row[fields["id_unit"]]) - 2
-            id_node = int(row[fields["id_node"]]) - 1
-            id_weight = int(row[fields["id_weight"]]) - 1
+            index_unit = int(row[fields["index_unit"]]) - 2
+            index_node = int(row[fields["index_node"]]) - 1
+            index_weight = int(row[fields["index_weight"]]) - 1
             weight = float(row[fields["weight"]])
-            weight_network[id_unit][id_node][id_weight] = weight
+            weight_network[index_unit][index_node][index_weight] = weight
 
         # Set the new weights to the network
         network.set_weights(weight_network) 
@@ -175,14 +175,14 @@ class NetworkIO_CSV:
         table = []
 
         # Fill the first row with the field names
-        table.append(["id_unit", "id_node", "id_weight", "weight"])
+        table.append(["index_unit", "index_node", "index_weight", "weight"])
 
-        # Since the input unit is #1, the id_unit range has to be shifted
+        # Since the input unit is #1, the index_unit range has to be shifted
         # from a value of 2 and not 1 as this is the case for the other ids.
-        for id_unit, weight_unit in zip(range(2,len(weight_network)+2), weight_network):
-            for id_node, weight_node in zip(range(1,len(weight_unit)+1), weight_unit):
-                for id_weight, weight in zip(range(1,len(weight_node)+1), weight_node):
-                    table.append([id_unit, id_node, id_weight, weight])
+        for index_unit, weight_unit in zip(range(2,len(weight_network)+2), weight_network):
+            for index_node, weight_node in zip(range(1,len(weight_unit)+1), weight_unit):
+                for index_weight, weight in zip(range(1,len(weight_node)+1), weight_node):
+                    table.append([index_unit, index_node, index_weight, weight])
 
         # TODO exception file exists
         # TODO check whether this code can be factorized with write_structure()
