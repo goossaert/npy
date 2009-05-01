@@ -119,7 +119,7 @@ class Unit:
             self.__nodes.append(node)
 
 
-    def get_nb_node(self):
+    def get_nb_nodes(self):
         return len(self.__nodes) 
 
 
@@ -365,35 +365,39 @@ class Network:
         self.__nb_input = nb_input
 
 
-    def add_unit(self, nb_node, activator, updator):
+    def add_unit(self, nb_nodes, name_activator, name_updator):
         """
         Adds a unit to the network as the new output unit. Takes care of
         making the connections with the previous unit.
 
         :Parameters:
-            nb_node : integer
+            nb_nodes : integer
                 Number of nodes required in the unit. 
-            activator : `Activator`
-                `Activator` instance used to compute the activation function
-                for the current unit.
-            updator : `Updator`
-                `Updator` instance used to compute the updates to the weights.
+            name_activator : string
+                Name of the `Activator` to use to compute the activation
+                function for the current unit.
+            name_updator : string
+                Name of the `Updator` to use to compute the updates to
+                the weights.
 
         :Returns:
             The `Unit` that has just been added to the network.
         """
-        if nb_node <= 0 or activator == None or updator == None:
+        if nb_nodes <= 0 or name_activator == None or name_updator == None:
             pass # TODO throw exception
 
         if len(self.__units) == 0:
-            previous_nodes_nb = self.__nb_input
+            nb_previous_nodes = self.__nb_input
         else:
-            previous_nodes_nb = self.__units[-1].get_nb_node()
+            nb_previous_nodes = self.__units[-1].get_nb_nodes()
 
-        # Add 1  order to implement the bias
-        previous_nodes_nb = previous_nodes_nb + 1
+        # Add 1 in order to implement the bias
+        nb_previous_nodes = nb_previous_nodes + 1
 
-        unit = Unit(nb_node, previous_nodes_nb, activator, updator)
+        activator = Activator.build_instance_by_name(name_activator)
+        updator = Updator.build_instance_by_name(name_updator)
+
+        unit = Unit(nb_nodes, nb_previous_nodes, activator, updator)
         self.__units.append(unit)
         return unit
 
@@ -430,7 +434,7 @@ class Network:
                 `DataInstance` used by the network to compute the outputs.
 
         :Returns:
-            number : the label associated with the classification produced
+            integer : the label associated with the classification produced
             by the network for the given instance.
         """
         values = self.compute_output(instance)
@@ -583,12 +587,12 @@ class Network:
 
         struct["unit1_nbnodes"] = self.__nb_input
         for index_unit, unit in zip(range(2,len(self.__units)+2), self.__units):
-            unit_name = "unit" + str(index_unit)
-            struct[unit_name + "_nbnodes"] = unit.get_nb_node()
+            name_unit = "unit" + str(index_unit)
+            struct[name_unit + "_nbnodes"] = unit.get_nb_nodes()
             activator = unit.get_activator()
-            struct[unit_name + "_activator"] = activator.get_name() 
+            struct[name_unit + "_activator"] = activator.get_name() 
             updator = unit.get_updator()
-            struct[unit_name + "_updator"] = updator.get_name() 
+            struct[name_unit + "_updator"] = updator.get_name() 
 
         return struct 
 
@@ -614,15 +618,15 @@ class Network:
         self.__nb_input = int(struct["unit1_nbnodes"])
 
         for index_unit in range(2, int(struct["nb_units"])+1):
-            unit_name = "unit" + str(index_unit)
-            nb_nodes = int(struct[unit_name + "_nbnodes"])
+            name_unit = "unit" + str(index_unit)
 
-            activator_name = struct[unit_name + "_activator"]
-            updator_name = struct[unit_name + "_updator"]
+            name_activator = struct[name_unit + "_activator"]
+            activator = Activator.build_instance_by_name(name_activator)
 
-            activator = Activator.build_instance_by_name(activator_name)
-            updator = Updator.build_instance_by_name(updator_name)
+            name_updator = struct[name_unit + "_updator"]
+            updator = Updator.build_instance_by_name(name_updator)
 
+            nb_nodes = int(struct[name_unit + "_nbnodes"])
             self.add_unit(nb_nodes, activator, updator) 
 
 
