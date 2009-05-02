@@ -28,6 +28,7 @@ from npy.data import DataCollection
 from npy.data import DataInstance
 from npy.data import DataClassification
 from npy.data import DataClassified
+from npy.factory import Factory
 
 class Node:
     """
@@ -394,8 +395,8 @@ class Network:
         # Add 1 in order to implement the bias
         nb_previous_nodes = nb_previous_nodes + 1
 
-        activator = Activator.build_instance_by_name(name_activator)
-        updator = Updator.build_instance_by_name(name_updator)
+        activator = Factory.build_instance_by_name(name_activator)
+        updator = Factory.build_instance_by_name(name_updator)
 
         unit = Unit(nb_nodes, nb_previous_nodes, activator, updator)
         self.__units.append(unit)
@@ -446,9 +447,9 @@ class Network:
         Classify a `DataCollection`.
 
         :Parameters:
-            data_collection: `DataCollection`
+            data_collection : `DataCollection`
                 `DataCollection` to classify.
-            filter : Filter
+            filter : 'Filter'
                 `Filter` to use to filter the data 
 
         :Returns:
@@ -481,13 +482,11 @@ class Network:
 
     def learn_instance(self, instance, data=None, out_data=None):
         """
-        Makes the network learn the given `Instance`.
+        Makes the network learn the given `DataInstance`.
 
         :Parameters:
-            input : sequence of floats
-                Input instance to be learned.
-            desired_output : sequence of floats
-                Output desired for the current input instance.
+            instance : `DataInstance`
+                `DataInstance` to be learned.
             data
                 Data input, to be filled by the user if necessary.
             out_data

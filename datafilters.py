@@ -44,7 +44,7 @@ class Numerizer:
 
     def __init__(self, dc_source):
         """ 
-        Builds a `DataNumerizer` based on the data provided in dc_source.
+        Builds a `Numerizer` based on the data provided in dc_source.
 
         :Parameters:
             dc_source : `DataCollectionRAW`
@@ -144,7 +144,7 @@ class Numerizer:
         for the label.
 
         :Parameters:
-            number : int
+            number_label : int
                 Label number to be converted into a label string.
 
         :Returns:
@@ -232,7 +232,7 @@ class Normalizer:
 
     def __init__(self, dc_source, lower_bound=0, upper_bound=1):
         """
-        Builds a `DataNormalizer` based on the data provided in dc_source.
+        Builds a `Normalizer` based on the data provided in dc_source.
 
         :Parameters:
             dc_source : `DataCollectionPCD`

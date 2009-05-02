@@ -26,24 +26,17 @@ import math
 from error import ErrorDirectOutput
 from error import ErrorWeightedSum
 from npy.labeler import LabelerMax
+from factory import *
 
 
-class Activator:
+class Activator(FactoryMixin):
     """
     Activator function class
 
-    **The two instance variables are not required when the object is
+    **The instance variables are not required when the object is
     created, but they MUST be initialized before it is used.**
     
-    :CVariables:
-        __updators : dictionary 
-            This dictionary associate one instance of each possible subclass
-            of Activator to a unique name. That way, one can create instances
-            of any subclass just by passing the name to the factory method.
-
     :IVariables:
-        __name : string
-            Name of the subclass.
         __error_hidden_unit : `Error`
             Error class instance used in the case of a hidden unit.
         __error_output_unit : `Error`
@@ -52,26 +45,15 @@ class Activator:
             Labeler associated with the current activator.
     """
     
-    # Dictionary of the activators
-    __activators = {}
-
 
     def __init__(self):
         """
         Initializer.
         """
+        FactoryMixin.__init__(self)
         self.__error_hidden_unit = None
         self.__error_output_unit = None
         self.__labeler = None
-        self.__name = None
-
-
-    def get_name(self):
-        return self.__name
-
-    
-    def _set_name(self,name):
-        self.__name = name
 
 
     def set_error_hidden_unit(self, error):
@@ -208,47 +190,6 @@ class Activator:
         return self.__labeler.vector_to_label(vector)
 
 
-    def build_instance(self):
-        """
-        Build an instance of the current activator class.
-
-        :Returns:
-            An instance of the current activator class.
-        """
-        pass 
-
-
-    def build_instance_by_name(name):
-        """
-        Build an instance of the activator given in parameter.
-
-        :Parameters:
-            name : string
-                Name of the activator class to instanciate
-
-        :Returns:
-            An instance of the required activator.
-        """
-        # TODO What happens when the name is not in the dict?
-        return Activator.__activators[name].build_instance()
-    build_instance_by_name = staticmethod(build_instance_by_name)
-    
-    
-    def declare_activator(instance):
-        """
-        Add the name and an instance of a given activator in the general
-        activator list. It will be used when a network will be built from
-        a stream.
-
-        :Parameters:
-            instance : Activator
-                Instance of the activator
-        """
-        name = instance.get_name()
-        Activator.__activators[name] = instance 
-    declare_activator = staticmethod(declare_activator)
-
-
 
 class ActivatorLinear(Activator):
     """
@@ -337,6 +278,6 @@ class ActivatorSigmoid(Activator):
 
 
 # Declare the activators to the Activator class
-Activator.declare_activator(ActivatorLinear())
-Activator.declare_activator(ActivatorPerceptron())
-Activator.declare_activator(ActivatorSigmoid())
+Factory.declare_instance(ActivatorLinear())
+Factory.declare_instance(ActivatorPerceptron())
+Factory.declare_instance(ActivatorSigmoid())

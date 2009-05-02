@@ -22,39 +22,19 @@ __docformat__ = "restructuredtext en"
 
 
 import itertools
+from factory import *
 
 
-class Updator:
+class Updator(FactoryMixin):
     """
     Abstract class for the gradient descent updating process
-
-    :CVariables:
-        __updators : dictionary 
-            This dictionary associate one instance of each possible subclass
-            of Updator to a unique name. That way, one can create instances
-            of any subclass just by passing the name to the factory method.
-
-    :IVariables:
-        __name : string
-            Name of the subclass.
     """
 
-    # dictionary of the updators
-    __updators = {}
-    
     def __init__(self):
         """
         Initializer
         """
-        self.__name = None 
-
-
-    def get_name(self):
-        return self.__name
-
-
-    def _set_name(self,name):
-        self.__name = name
+        FactoryMixin.__init__(self)
 
 
     def compute_update(self, unit, outputs, errors, weight_updates, data, out_data):
@@ -80,48 +60,6 @@ class Updator:
         """
         return None
 
-
-    def build_instance(self):
-        """
-        Build an instance of the current updator class.
-
-        :Returns:
-            An instance of the current updator class.
-        """
-        pass 
-
-
-    @staticmethod
-    def build_instance_by_name(name):
-        """
-        Build an instance of the updator given in parameter.
-
-        :Parameters:
-            name : string
-                Name of the updator class to instanciate
-
-        :Returns:
-            An instance of the required updator.
-        """
-        # TODO What happens when the name is not in the dict?
-        return Updator.__updators[name].build_instance()
-    #build_instance_by_name = staticmethod(build_instance_by_name)
-    
-    
-    @staticmethod
-    def declare_updator(instance):
-        """
-        Add the name and an instance of a given activator in the general
-        activator list. It will be used when a network will be built from
-        a stream.
-
-        :Parameters:
-            instance : Updator
-                Instance of the updator
-        """
-        name = instance.get_name()
-        Updator.__updators[name] = instance 
-    #declare_updator = staticmethod(declare_updator)
 
 
 class UpdatorBackpropagation(Updator):
@@ -200,5 +138,5 @@ class UpdatorTD(Updator):
 
 
 # Declare the activators to the Updator class
-Updator.declare_updator(UpdatorBackpropagation())
-Updator.declare_updator(UpdatorTD())
+Factory.declare_instance(UpdatorBackpropagation())
+Factory.declare_instance(UpdatorTD())
