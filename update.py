@@ -1,5 +1,5 @@
 """
-Updator module.
+Update module.
 """
 __docformat__ = "restructuredtext en"
 
@@ -22,10 +22,11 @@ __docformat__ = "restructuredtext en"
 
 
 import itertools
-from factory import *
+from factory import FactoryMixin
+from factory import Factory
 
 
-class Updator(FactoryMixin):
+class Update(FactoryMixin):
     """
     Abstract class for the gradient descent updating process
     """
@@ -58,17 +59,17 @@ class Updator(FactoryMixin):
         :Returns:
             The new values for the weights, after having applied the updates. 
         """
-        return None
+        pass
 
 
 
-class UpdatorBackpropagation(Updator):
+class UpdateBackpropagation(Update):
     """
     Backpropagation update class 
     """
 
     def __init__(self):
-        Updator.__init__(self)
+        Update.__init__(self)
         self._set_name("up_backpropagation")
 
 
@@ -87,18 +88,19 @@ class UpdatorBackpropagation(Updator):
         return next_weights
 
 
-    def build_instance(self):
-        return UpdatorBackpropagation()
+    @staticmethod
+    def build_instance():
+        return UpdateBackpropagation()
 
 
 
-class UpdatorTD(Updator):
+class UpdateTD(Update):
     """
     TD Reinforcement learning update class
     """
 
     def __init__(self):
-        Updator.__init__(self)
+        Update.__init__(self)
         self._set_name("up_tdlearning")
 
 
@@ -133,10 +135,11 @@ class UpdatorTD(Updator):
         return next_weights
     
 
-    def build_instance(self):
-        return UpdatorTD()
+    @staticmethod
+    def build_instance():
+        return UpdateTD()
 
 
-# Declare the activators to the Updator class
-Factory.declare_instance(UpdatorBackpropagation())
-Factory.declare_instance(UpdatorTD())
+# Declare the activation functions to the Update class
+Factory.declare_instance(UpdateBackpropagation())
+Factory.declare_instance(UpdateTD())

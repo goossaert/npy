@@ -21,6 +21,9 @@ __docformat__ = "restructuredtext en"
 ## along with npy.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import inspect
+
+
 class Factory:
     """
     Factory that creates instances of classes just by reading a class name.
@@ -54,7 +57,7 @@ class Factory:
                 Name of the class to instanciate
 
         :Returns:
-            An instance of the required updator.
+            An instance of the required update_function.
         """
         # TODO What happens when the name is not in the dict?
         return Factory.__subclasses[name].build_instance()
@@ -63,12 +66,12 @@ class Factory:
     @staticmethod
     def declare_instance(instance):
         """
-        Add the name and an instance of a given activator in the general
-        activator list. It will be used when a network will be built from
+        Add the name and an instance of a given activation_function in the general
+        activation_function list. It will be used when a network will be built from
         a stream.
 
         :Parameters:
-            instance : implements `FactoryMixin`
+            instance : instance of a class that implements `FactoryMixin`
                 Instance of the class
         """
         # TODO First check that the name is not already present in the dict

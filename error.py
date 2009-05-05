@@ -64,7 +64,7 @@ class Error:
 
 
 
-class ErrorDirectOutput(Error):
+class ErrorOutputDifference(Error):
     """Output unit weight_update function class"""
 
     def __init__(self):
@@ -79,7 +79,7 @@ class ErrorDirectOutput(Error):
         return errors
 
 
-class ErrorWeightedSum(Error):
+class ErrorLinear(Error):
     """Weighted sum error function class"""
 
     def __init__(self):

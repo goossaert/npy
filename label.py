@@ -1,5 +1,5 @@
 """
-Labeler module.
+Label module.
 """
 __docformat__ = "restructuredtext en"
 
@@ -21,7 +21,7 @@ __docformat__ = "restructuredtext en"
 ## along with npy.  If not, see <http://www.gnu.org/licenses/>.
 
 
-class Labeler:
+class Label:
     """
     This class is used to convert a label value, either a integer of a float,
     into the output vector a network is supposed to produce, and conversely.
@@ -67,9 +67,9 @@ class Labeler:
 
 
 
-class LabelerMax(Labeler):
+class LabelMax(Label):
     """
-    This labeler simply converts a label into an unity vector,
+    This label_function simply converts a label into an unity vector,
     and give for label to any vector the index of its maximum value.
 
     For example with a network that has 4 nodes in the output unit:
@@ -81,7 +81,7 @@ class LabelerMax(Labeler):
         """
         Initializer
         """
-        Labeler.__init__(self)
+        Label.__init__(self)
         pass
 
 

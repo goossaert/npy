@@ -20,5 +20,5 @@ __docformat__ = "restructuredtext en"
 ## You should have received a copy of the GNU General Public License
 ## along with npy.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ["network", "activator", "updator", "error"]
+__all__ = ["network", "activation_function", "update_function", "error"]
 

@@ -23,15 +23,16 @@ __docformat__ = "restructuredtext en"
 
 import math
 
-from error import ErrorDirectOutput
-from error import ErrorWeightedSum
-from npy.labeler import LabelerMax
-from factory import *
+from error import ErrorOutputDifference
+from error import ErrorLinear
+from label import LabelMax
+from factory import FactoryMixin
+from factory import Factory
 
 
-class Activator(FactoryMixin):
+class Activation(FactoryMixin):
     """
-    Activator function class
+    Activation function class
 
     **The instance variables are not required when the object is
     created, but they MUST be initialized before it is used.**
@@ -41,8 +42,8 @@ class Activator(FactoryMixin):
             Error class instance used in the case of a hidden unit.
         __error_output_unit : `Error`
             Error class instance used in the case of an output unit.
-        __labeler : `Labeler`
-            Labeler associated with the current activator.
+        __label_function : `Label`
+            Label associated with the current activation_function.
     """
     
 
@@ -53,7 +54,7 @@ class Activator(FactoryMixin):
         FactoryMixin.__init__(self)
         self.__error_hidden_unit = None
         self.__error_output_unit = None
-        self.__labeler = None
+        self.__label_function = None
 
 
     def set_error_hidden_unit(self, error):
@@ -64,8 +65,8 @@ class Activator(FactoryMixin):
         self.__error_output_unit = error
 
 
-    def set_labeler(self, labeler):
-        self.__labeler = labeler
+    def set_label_function(self, label_function):
+        self.__label_function = label_function
 
 
     def compute_activation(self, inputs, weights):
@@ -171,7 +172,7 @@ class Activator(FactoryMixin):
         :Returns:
             sequence : the vector associated with the provided label.
         """
-        return self.__labeler.label_to_vector(label, nb_node)
+        return self.__label_function.label_to_vector(label, nb_node)
 
 
     def vector_to_label(self, vector):
@@ -187,20 +188,20 @@ class Activator(FactoryMixin):
         :Returns:
             number : the label associated with the vector.
         """
-        return self.__labeler.vector_to_label(vector)
+        return self.__label_function.vector_to_label(vector)
 
 
 
-class ActivatorLinear(Activator):
+class ActivationLinear(Activation):
     """
     Linear activation function
     """
 
     def __init__(self):
-        Activator.__init__(self)
-        self.set_error_hidden_unit(ErrorDirectOutput())
-        self.set_error_output_unit(ErrorDirectOutput())
-        self.set_labeler(LabelerMax())
+        Activation.__init__(self)
+        self.set_error_hidden_unit(ErrorOutputDifference())
+        self.set_error_output_unit(ErrorOutputDifference())
+        self.set_label_function(LabelMax())
         self._set_name("ac_linear")
         pass
 
@@ -213,21 +214,22 @@ class ActivatorLinear(Activator):
         return 1
 
 
-    def build_instance(self):
-        return ActivatorLinear()
+    @staticmethod
+    def build_instance():
+        return ActivationLinear()
 
 
 
-class ActivatorPerceptron(Activator):
+class ActivationPerceptron(Activation):
     """
     Perceptron activation function
     """
 
     def __init__(self):
-        Activator.__init__(self)
-        self.set_error_hidden_unit(ErrorDirectOutput())
-        self.set_error_output_unit(ErrorDirectOutput())
-        self.set_labeler(LabelerMax())
+        Activation.__init__(self)
+        self.set_error_hidden_unit(ErrorOutputDifference())
+        self.set_error_output_unit(ErrorOutputDifference())
+        self.set_label_function(LabelMax())
         self._set_name("ac_perceptron")
         pass
 
@@ -243,25 +245,26 @@ class ActivatorPerceptron(Activator):
         return 1
 
 
-    def build_instance(self):
-        return ActivatorPerceptron()
+    @staticmethod
+    def build_instance():
+        return ActivationPerceptron()
 
 
 
-class ActivatorSigmoid(Activator):
+class ActivationSigmoid(Activation):
     """
     Sigmoid activation function
     """
 
     def __init__(self):
         """
-        Uses ErrorWeightedSum for the hidden unit and ErrorDirectOutput for
+        Uses ErrorLinear for the hidden unit and ErrorOutputDifference for
         the output unit.
         """
-        Activator.__init__(self)
-        self.set_error_hidden_unit(ErrorWeightedSum())
-        self.set_error_output_unit(ErrorDirectOutput())
-        self.set_labeler(LabelerMax())
+        Activation.__init__(self)
+        self.set_error_hidden_unit(ErrorLinear())
+        self.set_error_output_unit(ErrorOutputDifference())
+        self.set_label_function(LabelMax())
         self._set_name("ac_sigmoid")
 
 
@@ -273,11 +276,12 @@ class ActivatorSigmoid(Activator):
         return x * (1 - x)
 
 
-    def build_instance(self):
-        return ActivatorSigmoid()
+    @staticmethod
+    def build_instance():
+        return ActivationSigmoid()
 
 
-# Declare the activators to the Activator class
-Factory.declare_instance(ActivatorLinear())
-Factory.declare_instance(ActivatorPerceptron())
-Factory.declare_instance(ActivatorSigmoid())
+# Declare the activation functions to the Activation class
+Factory.declare_instance(ActivationLinear())
+Factory.declare_instance(ActivationPerceptron())
+Factory.declare_instance(ActivationSigmoid())

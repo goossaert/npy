@@ -55,29 +55,32 @@ class Node:
 
 #        print 'weights', self.__weights
 
+
     def get_weights(self):
         return self.__weights
+
 
     def set_weights(self, weights):
         # TODO check the number of weights and raise exception if not equal
         self.__weights = weights
 
-    def compute_output(self, input, activator):
+
+    def compute_output(self, input, activation_function):
         """
         Compute output value using the current Node
 
         :Parameters:
             input : sequence 
                 Data for the input unit of the network.
-            activator : Activator
-                Activator instance to be used to compute the output.
+            activation_function : Activation
+                Activation instance to be used to compute the output.
 
         :Returns:
             sequence: the output values of the network.
         """
                                                          
         # check the number of inputs and raise exception if not equal
-        return activator.compute_activation(input, self.__weights)
+        return activation_function.compute_activation(input, self.__weights)
 
 
 
@@ -88,14 +91,14 @@ class Unit:
     :IVariables:
         __nodes : sequence of Node
             Nodes in the current unit. 
-        __activator : Activator
-            Activator instance used to compute the activation function
+        __activation_function : Activation
+            Activation instance used to compute the activation function
             for the current unit.
-        __updator : Updator
-            Updator instance used to compute the updates to the weights.
+        __update_function : Update
+            Update instance used to compute the updates to the weights.
     """
 
-    def __init__(self, nb_node, previous_nb_node, activator, updator):
+    def __init__(self, nb_node, previous_nb_node, activation_function, update_function):
         """
         Initializer.
 
@@ -104,16 +107,16 @@ class Unit:
                 Number of nodes required in the unit. 
             previous_nb_node : integer
                 Number of nodes in the previous unit.
-            activator : Activator
-                Activator instance used to compute the activation function
+            activation_function : Activation
+                Activation instance used to compute the activation function
                 for the current unit.
-            updator : Updator
-                Updator instance used to compute the updates to the weights.
+            update_function : Update
+                Update instance used to compute the updates to the weights.
         """
 
         self.__nodes = []
-        self.__activator = activator
-        self.__updator = updator 
+        self.__activation_function = activation_function
+        self.__update_function = update_function 
         
         for i in range(nb_node):
             node = Node(previous_nb_node)
@@ -154,20 +157,20 @@ class Unit:
         #self.Nodes[index].set_weights(weights)
 
 
-    def set_activator(self, activator):
-        self.__activator = activator
+    def set_activation_function(self, activation_function):
+        self.__activation_function = activation_function
 
 
-    def get_activator(self):
-        return self.__activator
+    def get_activation_function(self):
+        return self.__activation_function
 
 
-    def set_updator(self, updator):
-        self.__updator = updator
+    def set_update_function(self, update_function):
+        self.__update_function = update_function
 
 
-    def get_updator(self):
-        return self.__updator
+    def get_update_function(self):
+        return self.__update_function
 
 
     def load_values(self, values):
@@ -200,7 +203,7 @@ class Unit:
 
         values = []
         for node in self.__nodes: 
-            values.append(node.compute_output(input, self.__activator))
+            values.append(node.compute_output(input, self.__activation_function))
         
         return values 
     
@@ -217,7 +220,7 @@ class Unit:
         :Returns:
             Value of the activation function.
         """
-        return self.__activator.compute_activation(inputs, weights)
+        return self.__activation_function.compute_activation(inputs, weights)
     
     def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit):
         """
@@ -247,7 +250,7 @@ class Unit:
         :Returns:
             The error_network.
         """
-        return self.__activator.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit)
+        return self.__activation_function.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit)
 
     def compute_update(self, index, unit, outputs, error_network, update_network, data, out_data): 
         """
@@ -272,7 +275,7 @@ class Unit:
         :Returns:
             The new values for the weights, after having applied the updates. 
         """
-        return self.__updator.compute_update(index, unit, outputs, error_network, update_network, data, out_data)
+        return self.__update_function.compute_update(index, unit, outputs, error_network, update_network, data, out_data)
    
 
     def label_to_vector(self, label):
@@ -286,7 +289,7 @@ class Unit:
         :Returns:
             sequence : the vector associated with the provided label.
         """
-        return self.__activator.label_to_vector(label, len(self.__nodes))
+        return self.__activation_function.label_to_vector(label, len(self.__nodes))
 
 
     def vector_to_label(self, vector):
@@ -302,13 +305,13 @@ class Unit:
         :Returns:
             number : the label associated with the vector.
         """
-        return self.__activator.vector_to_label(vector)
+        return self.__activation_function.vector_to_label(vector)
 
 
 
 
-from npy.activator import Activator
-from npy.updator import Updator
+from npy.activation import Activation
+from npy.update import Update
 
 
 class Network:
@@ -366,7 +369,7 @@ class Network:
         self.__nb_input = nb_input
 
 
-    def add_unit(self, nb_nodes, name_activator, name_updator):
+    def add_unit(self, nb_nodes, name_activation_function, name_update_function):
         """
         Adds a unit to the network as the new output unit. Takes care of
         making the connections with the previous unit.
@@ -374,17 +377,17 @@ class Network:
         :Parameters:
             nb_nodes : integer
                 Number of nodes required in the unit. 
-            name_activator : string
-                Name of the `Activator` to use to compute the activation
+            name_activation_function : string
+                Name of the `Activation` to use to compute the activation
                 function for the current unit.
-            name_updator : string
-                Name of the `Updator` to use to compute the updates to
+            name_update_function : string
+                Name of the `Update` to use to compute the updates to
                 the weights.
 
         :Returns:
             The `Unit` that has just been added to the network.
         """
-        if nb_nodes <= 0 or name_activator == None or name_updator == None:
+        if nb_nodes <= 0 or name_activation_function == None or name_update_function == None:
             pass # TODO throw exception
 
         if len(self.__units) == 0:
@@ -395,10 +398,10 @@ class Network:
         # Add 1 in order to implement the bias
         nb_previous_nodes = nb_previous_nodes + 1
 
-        activator = Factory.build_instance_by_name(name_activator)
-        updator = Factory.build_instance_by_name(name_updator)
+        activation_function = Factory.build_instance_by_name(name_activation_function)
+        update_function = Factory.build_instance_by_name(name_update_function)
 
-        unit = Unit(nb_nodes, nb_previous_nodes, activator, updator)
+        unit = Unit(nb_nodes, nb_previous_nodes, activation_function, update_function)
         self.__units.append(unit)
         return unit
 
@@ -588,10 +591,10 @@ class Network:
         for index_unit, unit in zip(range(2,len(self.__units)+2), self.__units):
             name_unit = "unit" + str(index_unit)
             struct[name_unit + "_nbnodes"] = unit.get_nb_nodes()
-            activator = unit.get_activator()
-            struct[name_unit + "_activator"] = activator.get_name() 
-            updator = unit.get_updator()
-            struct[name_unit + "_updator"] = updator.get_name() 
+            activation_function = unit.get_activation_function()
+            struct[name_unit + "_activation_function"] = activation_function.get_name() 
+            update_function = unit.get_update_function()
+            struct[name_unit + "_update_function"] = update_function.get_name() 
 
         return struct 
 
@@ -609,8 +612,8 @@ class Network:
                     * unit1_nbnodes = number of nodes in the input unit
                 And for each of the non-input units:
                     * unit#_nbnodes = number of nodes in the #-th unit
-                    * unit#_activator = activator name in the #-th unit
-                    * unit#_updator = updator name in the #-th unit
+                    * unit#_activation_function = activation_function name in the #-th unit
+                    * unit#_update_function = update_function name in the #-th unit
         """
         self.reset()
         self.__learning_rate = float(struct["learning_rate"])
@@ -619,14 +622,14 @@ class Network:
         for index_unit in range(2, int(struct["nb_units"])+1):
             name_unit = "unit" + str(index_unit)
 
-            name_activator = struct[name_unit + "_activator"]
-            activator = Activator.build_instance_by_name(name_activator)
+            name_activation_function = struct[name_unit + "_activation_function"]
+            activation_function = Activation.build_instance_by_name(name_activation_function)
 
-            name_updator = struct[name_unit + "_updator"]
-            updator = Updator.build_instance_by_name(name_updator)
+            name_update_function = struct[name_unit + "_update_function"]
+            update_function = Update.build_instance_by_name(name_update_function)
 
             nb_nodes = int(struct[name_unit + "_nbnodes"])
-            self.add_unit(nb_nodes, activator, updator) 
+            self.add_unit(nb_nodes, activation_function, update_function) 
 
 
     def get_weights(self):
