@@ -23,8 +23,11 @@ __docformat__ = "restructuredtext en"
 
 import itertools
 
+from factory import FactoryMixin
+from factory import Factory
 
-class Error:
+
+class Error(FactoryMixin):
     """
     Abstract class for the error computation in the gradient descent process.
     """
@@ -34,6 +37,7 @@ class Error:
         Initializer.
         """
         pass
+
 
     def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, activation_derivative):
         """
@@ -65,10 +69,14 @@ class Error:
 
 
 class ErrorOutputDifference(Error):
-    """Output unit weight_update function class"""
+    """
+    Difference with output error function class.
+    """
 
     def __init__(self):
         Error.__init__(self)
+        self._set_name("er_outputdiff")
+
 
     def compute_errors(self, errors, desired_output, outputs, next_unit_weights, activation_derivative):
     
@@ -79,13 +87,26 @@ class ErrorOutputDifference(Error):
         return errors
 
 
+    @staticmethod
+    def build_instance():
+        return ErrorOutputDifference()
+
+
+
 class ErrorLinear(Error):
-    """Weighted sum error function class"""
+    """
+    Linear error function class.
+    """
 
     def __init__(self):
         Error.__init__(self)
+        self._set_name("er_linear")
+
 
     def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, activation_derivative):
+
+        # TODO check on the next_unit_weights first, to be sure we are
+        #      not in a output unit
         
         # Pre-allocate the error_sum list so that we can loop on it
         error_sum = []
@@ -104,3 +125,13 @@ class ErrorLinear(Error):
             errors.append(activation_derivative(computed) * currenterror)
 
         return errors
+
+
+    @staticmethod
+    def build_instance():
+        return ErrorLinear()
+
+
+# Declare the error functions to the Factory
+Factory.declare_instance(ErrorOutputDifference())
+Factory.declare_instance(ErrorLinear())

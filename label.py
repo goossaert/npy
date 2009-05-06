@@ -21,7 +21,11 @@ __docformat__ = "restructuredtext en"
 ## along with npy.  If not, see <http://www.gnu.org/licenses/>.
 
 
-class Label:
+from factory import FactoryMixin
+from factory import Factory
+
+
+class Label(FactoryMixin):
     """
     This class is used to convert a label value, either a integer of a float,
     into the output vector a network is supposed to produce, and conversely.
@@ -82,7 +86,7 @@ class LabelMax(Label):
         Initializer
         """
         Label.__init__(self)
-        pass
+        self._set_name("la_max")
 
 
     def label_to_vector(self, label, nb_node):
@@ -114,3 +118,10 @@ class LabelMax(Label):
         return label
 
 
+    @staticmethod
+    def build_instance():
+        return LabelMax()
+
+
+# Declare the label functions to the Factory
+Factory.declare_instance(LabelMax())

@@ -83,8 +83,7 @@ class Factory:
 class FactoryMixin: 
     """
     Mixin class that provides classes with features related with their
-    Factory Method capabilities.
-    """
+    Factory Method capabilities.  """
     
     def __init__(self):
         """

@@ -30,6 +30,8 @@ from npy.data import DataClassification
 from npy.data import DataClassified
 from npy.factory import Factory
 
+from npy.label import *
+
 class Node:
     """
     Neural network Node.
@@ -92,13 +94,15 @@ class Unit:
         __nodes : sequence of Node
             Nodes in the current unit. 
         __activation_function : Activation
-            Activation instance used to compute the activation function
+            `Activation` instance used to compute the activation function
             for the current unit.
         __update_function : Update
-            Update instance used to compute the updates to the weights.
+            `Update` instance used to compute the updates to the weights.
+        __error_function : `Error`
+            `Error` instance used to compute the error of the unit.
     """
 
-    def __init__(self, nb_node, previous_nb_node, activation_function, update_function):
+    def __init__(self, nb_node, previous_nb_node, activation_function, update_function, error_function):
         """
         Initializer.
 
@@ -108,15 +112,18 @@ class Unit:
             previous_nb_node : integer
                 Number of nodes in the previous unit.
             activation_function : Activation
-                Activation instance used to compute the activation function
+                `Activation` instance used to compute the activation function
                 for the current unit.
             update_function : Update
-                Update instance used to compute the updates to the weights.
+                `Update` instance used to compute the updates to the weights.
+            error_function : `Error`
+                `Error` instance used to compute the error of the unit.
         """
 
         self.__nodes = []
         self.__activation_function = activation_function
         self.__update_function = update_function 
+        self.__error_function = error_function
         
         for i in range(nb_node):
             node = Node(previous_nb_node)
@@ -173,6 +180,14 @@ class Unit:
         return self.__update_function
 
 
+    def set_error_function(self, error):
+        self.__error_function = error
+
+
+    def get_error_function(self):
+        return self.__error_function
+
+
     def load_values(self, values):
         """
         Load values nodes of the current unit
@@ -187,6 +202,7 @@ class Unit:
         """
         def loadval(node, val): node.load_value(val)
         map(loadval, self.__nodes, values)
+
 
     def compute_output(self, input):
         """
@@ -206,6 +222,7 @@ class Unit:
             values.append(node.compute_output(input, self.__activation_function))
         
         return values 
+
     
     def compute_activation(self, inputs, weights):
         """
@@ -221,10 +238,11 @@ class Unit:
             Value of the activation function.
         """
         return self.__activation_function.compute_activation(inputs, weights)
+
     
     def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit):
         """
-        Compute the error. 
+        Compute the error
 
         :Parameters:
             next_unit_errors
@@ -248,9 +266,13 @@ class Unit:
                 input unit.
 
         :Returns:
-            The error_network.
+            The error for the unit.
         """
-        return self.__activation_function.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit)
+
+        return self.__error_function.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, self.__activation_function.activation_derivative)
+
+        #return self.__activation_function.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit)
+
 
     def compute_update(self, index, unit, outputs, error_network, update_network, data, out_data): 
         """
@@ -278,36 +300,6 @@ class Unit:
         return self.__update_function.compute_update(index, unit, outputs, error_network, update_network, data, out_data)
    
 
-    def label_to_vector(self, label):
-        """
-        Convert a label into a vector a network is supposed to produce.
-
-        :Parameters:
-            label : number
-                The label to convert.
-
-        :Returns:
-            sequence : the vector associated with the provided label.
-        """
-        return self.__activation_function.label_to_vector(label, len(self.__nodes))
-
-
-    def vector_to_label(self, vector):
-        """
-        Convert a vector produced as an output by a network into a label. 
-        The number of nodes in the output unit is not given as a parameter
-        since this information can be derived from the length of the vector.
-
-        :Parameters:
-            vector : sequence
-                The vector produced as an output by a network.
-
-        :Returns:
-            number : the label associated with the vector.
-        """
-        return self.__activation_function.vector_to_label(vector)
-
-
 
 
 from npy.activation import Activation
@@ -325,15 +317,24 @@ class Network:
             Number of nodes in the input unit.
         __learning_rate : float
             Learning rate of the gradient descent process. 
+        __label_function : `Label`
+            Label function used to label output vectors.
     """
 
-    def __init__(self,nb_input=-1,learning_rate=-1):
+    def __init__(self, nb_input=-1, learning_rate=-1):
         """
         Initializer.
+
+        :Parameters:
+            nb_inputs : integer
+                Number of nodes in the input unit.
+            learning_rate : float
+                Learning rate of the network.
         """
         self.__units = []
         self.__nb_input = nb_input
         self.__learning_rate = learning_rate
+        self.__label_function = None
 
 
     def reset(self):
@@ -369,7 +370,16 @@ class Network:
         self.__nb_input = nb_input
 
 
-    def add_unit(self, nb_nodes, name_activation_function, name_update_function):
+    def set_label_function(self, name_label_function):
+        #TODO check that the previx is lb
+        self.__label_function = Factory.build_instance_by_name(name_label_function)
+
+
+    def get_label_function(self):
+        return self.__label_function
+
+
+    def add_unit(self, nb_nodes, name_activation_function, name_update_function, name_error_function):
         """
         Adds a unit to the network as the new output unit. Takes care of
         making the connections with the previous unit.
@@ -383,6 +393,8 @@ class Network:
             name_update_function : string
                 Name of the `Update` to use to compute the updates to
                 the weights.
+            name_error_function : string
+                Name of the `Error` to use to compute the error of the Unit.
 
         :Returns:
             The `Unit` that has just been added to the network.
@@ -400,8 +412,9 @@ class Network:
 
         activation_function = Factory.build_instance_by_name(name_activation_function)
         update_function = Factory.build_instance_by_name(name_update_function)
+        error_function = Factory.build_instance_by_name(name_error_function)
 
-        unit = Unit(nb_nodes, nb_previous_nodes, activation_function, update_function)
+        unit = Unit(nb_nodes, nb_previous_nodes, activation_function, update_function, error_function)
         self.__units.append(unit)
         return unit
 
@@ -542,7 +555,7 @@ class Network:
        
         self.set_weights(weights)
 
-    
+
     def label_to_vector(self, label):
         """
         Convert a label into a vector a network is supposed to produce.
@@ -554,7 +567,8 @@ class Network:
         :Returns:
             sequence : the vector associated with the provided label.
         """
-        return self.__units[len(self.__units)-1].label_to_vector(label)
+        nb_nodes_last_unit = self.__units[-1].get_nb_nodes()
+        return self.__label_function.label_to_vector(label, nb_nodes_last_unit)
 
 
     def vector_to_label(self, vector):
@@ -570,8 +584,7 @@ class Network:
         :Returns:
             number : the label associated with the vector.
         """
-        return self.__units[len(self.__units) - 1].vector_to_label(vector)
-
+        return self.__label_function.vector_to_label(vector)
 
 
     def get_structure(self):
@@ -623,10 +636,10 @@ class Network:
             name_unit = "unit" + str(index_unit)
 
             name_activation_function = struct[name_unit + "_activation_function"]
-            activation_function = Activation.build_instance_by_name(name_activation_function)
+            activation_function = Factory.build_instance_by_name(name_activation_function)
 
             name_update_function = struct[name_unit + "_update_function"]
-            update_function = Update.build_instance_by_name(name_update_function)
+            update_function = Factory.build_instance_by_name(name_update_function)
 
             nb_nodes = int(struct[name_unit + "_nbnodes"])
             self.add_unit(nb_nodes, activation_function, update_function) 
