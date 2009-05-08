@@ -48,12 +48,12 @@ class Metric(FactoryMixin):
 
 
 
-class MetricErrorRate(Metric):
+class MetricAccuracy(Metric):
     """
-    Error rate metric class.
-    
-    The error rate is simply the number of correctly classified instances
-    over the total number of instances.
+    Accuracy metric class.
+
+    The accuracy is (1 - error rate), and the error rate is simply the number
+    of correctly classified instances over the total number of instances.
     """
 
 
@@ -62,12 +62,12 @@ class MetricErrorRate(Metric):
         Initializer.
         """
         Metric.__init__(self)
-        self._set_name("me_errorrate")
+        self._set_name("me_accuracy")
          
 
     def compute_metric(self, data_collection, data_classification):
         """
-        Compute the error rate.
+        Compute the accuracy.
         """ 
 
         nb_correctly_classified = 0
@@ -83,9 +83,14 @@ class MetricErrorRate(Metric):
             if label_classified == label_original:
                 nb_correctly_classified += 1
 
-        return 1 - (nb_correctly_classified / len(instances))
+        return nb_correctly_classified / len(instances)
 
 
     @staticmethod
     def build_instance():
-        return MetricErrorRate()
+        return MetricAccuracy()
+
+
+
+# Declare the metric functions to the Factory
+Factory.declare_instance(MetricAccuracy())

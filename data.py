@@ -173,21 +173,21 @@ class DataClassified:
     made.
     """
 
-    def __init__(self, index_number, number_label, string_label):
+    def __init__(self, index_number, label_number, label_string):
         """
         Initializer
         
         :Parameters:
             index_number : integer
                 Id number for the classified instance.
-            number_label : integer 
+            label_number : integer 
                 Numeric value of the label given to the instance.
-            string_label : integer 
+            label_string : integer 
                 String value of the label given to the instance.
         """
         self.__index_number = index_number
-        self.__number_label = number_label
-        self.__string_label = string_label
+        self.__label_number = label_number
+        self.__label_string = label_string
 
 
     def get_index_number(self):
@@ -195,11 +195,11 @@ class DataClassified:
 
 
     def get_label_number(self):
-        return self.__number_label
+        return self.__label_number
 
 
     def get_label_string(self):
-        return self.__string_label
+        return self.__label_string
 
 
 

@@ -2,6 +2,7 @@
 Neural network module.
 """
 __docformat__ = "restructuredtext en" 
+
 ## Copyright (c) 2009 Emmanuel Goossaert 
 ##
 ## This file is part of npy.
@@ -371,7 +372,7 @@ class Network:
 
 
     def set_label_function(self, name_label_function):
-        #TODO check that the previx is lb
+        #TODO check that the prefix is la
         self.__label_function = Factory.build_instance_by_name(name_label_function)
 
 
@@ -476,11 +477,10 @@ class Network:
         data_classification = DataClassification()
 
         instances = data_collection.get_instances()
-
         for instance in instances:
-            number_label = self.compute_label(instance)
-            string_label = filter.number_to_label(number_label)
-            data_classified = DataClassified(instance.get_index_number(), number_label, string_label)
+            label_number = self.compute_label(instance)
+            label_string = filter.number_to_label(label_number)
+            data_classified = DataClassified(instance.get_index_number(), label_number, label_string)
             data_classification.add_data_classified(data_classified)
 
         return data_classification
@@ -567,6 +567,7 @@ class Network:
         :Returns:
             sequence : the vector associated with the provided label.
         """
+        # TODO check if a label function has been defined for the network.
         nb_nodes_last_unit = self.__units[-1].get_nb_nodes()
         return self.__label_function.label_to_vector(label, nb_nodes_last_unit)
 
@@ -584,6 +585,7 @@ class Network:
         :Returns:
             number : the label associated with the vector.
         """
+        # TODO check if a label function has been defined for the network.
         return self.__label_function.vector_to_label(vector)
 
 

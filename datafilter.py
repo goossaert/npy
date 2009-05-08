@@ -119,46 +119,46 @@ class Numerizer:
             self.__label[value_label] = len(self.__label) + 1
 
 
-    def label_to_number(self, string_label):
+    def label_to_number(self, label_string):
         """
         Get the numeric value associated with the string value
         for the label.
 
         :Parameters:
-            string_label : string
+            label_string : string
                 Label string to be converted into a label number.
 
         :Returns:
             int : the label number.
         """
 
-        if not string_label in self.__label:
+        if not label_string in self.__label:
             return None #TODO throw exception instead
 
-        return self.__label[string_label]
+        return self.__label[label_string]
 
 
-    def number_to_label(self, number_label):
+    def number_to_label(self, label_number):
         """
         Get the string value associated with the numeric value
         for the label.
 
         :Parameters:
-            number_label : int
+            label_number : int
                 Label number to be converted into a label string.
 
         :Returns:
             string : the label string.
         """
 
-        string_label = None
+        label_string = None
 
         for string, number in self.__label.iteritems():
-            if number_label == number:
-                string_label = string
+            if label_number == number:
+                label_string = string
                 break
             
-        return string_label
+        return label_string
 
              
     def numerize(self, dc_source):
