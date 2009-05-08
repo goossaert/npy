@@ -26,7 +26,7 @@ class DataInstance:
     that could be required: id, attributes and label.
     """
 
-    def __init__(self, index_number, attributes, label):
+    def __init__(self, index_number, attributes, label_number):
         """
         Initializer
             
@@ -35,13 +35,13 @@ class DataInstance:
                 Id number for this instance.
             attributes : sequence of floats
                 Attributes to be used as inputs.
-            label : integer 
+            label_number : integer 
                 Value of the label given to the instance.
         """
 
         self.__index_number = index_number
         self.__attributes = tuple(attributes)
-        self.__label = label
+        self.__label_number = label_number
 
 
     def get_index_number(self):
@@ -52,8 +52,8 @@ class DataInstance:
         return self.__attributes
 
 
-    def get_label(self):
-        return self.__label
+    def get_label_number(self):
+        return self.__label_number
 
 
 
@@ -61,15 +61,23 @@ class DataCollection:
     """
     Organizes instances into a collection, so that they can be treated
     all together.
+
+    :IVariables:
+        __instances : dictionary
+            Dictionary holding the all the `DataInstance`, associating
+            instances to their id numbers.
+        __name_attribute : tuple
+            Sequence of the names of the attributes. Stored as a tuple
+            because the order does matter.
     """
 
     def __init__(self):
         """
-        Initializer
+        Initializer.
         """
 
         self.__instances = {}
-        self.__name_attribute = []
+        self.__name_attribute = ()
 
 
     def add_instance(self, instance):
@@ -77,7 +85,7 @@ class DataCollection:
         Add a data instance into the data collection.
 
         :Parameters:
-            instance : Instance
+            instance : `Instance`
                 Instance to add to the data collection.
         """
 
@@ -150,7 +158,7 @@ class DataCollectionPCD(DataCollection):
     
     def __init__(self):
         """
-        Initializer
+        Initializer.
         """
 
         DataCollection.__init__(self);
@@ -186,11 +194,11 @@ class DataClassified:
         return self.__index_number
 
 
-    def get_number_label(self):
+    def get_label_number(self):
         return self.__number_label
 
 
-    def get_string_label(self):
+    def get_label_string(self):
         return self.__string_label
 
 
@@ -223,7 +231,7 @@ class DataClassification:
         self.__classified_instances[data_classified.get_index_number()] = data_classified
 
 
-    def get_data_classified_by_id(self, index_number):
+    def get_classified_instance_by_id(self, index_number):
         """
         Get a classified data from the collection from its index_number.
 
@@ -252,5 +260,5 @@ class DataClassification:
         data = []
         for k, v in self.__classified_instances.items():
             data.append(v)
-            
-        return data 
+
+        return data

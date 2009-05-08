@@ -1,5 +1,5 @@
 """
-Neural network module.
+Activation function module.
 """
 __docformat__ = "restructuredtext en"
 
@@ -102,7 +102,6 @@ class ActivationLinear(Activation):
     def __init__(self):
         Activation.__init__(self)
         self._set_name("ac_linear")
-        pass
 
 
     def activation_function(self, x):
@@ -127,7 +126,6 @@ class ActivationPerceptron(Activation):
     def __init__(self):
         Activation.__init__(self)
         self._set_name("ac_perceptron")
-        pass
 
 
     def activation_function(self, x):

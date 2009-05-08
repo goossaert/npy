@@ -1,5 +1,5 @@
 """
-Error computation module.
+Error function module.
 """
 __docformat__ = "restructuredtext en"
 

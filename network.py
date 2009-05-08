@@ -512,7 +512,7 @@ class Network:
 
         # Transform this method into a template mothod: it will increase the cohesion.
 
-        desired_output = self.label_to_vector(instance.get_label())
+        desired_output = self.label_to_vector(instance.get_label_number())
 
         # Compute the outputs from the whole network
         outputs = self.compute_output(instance) 

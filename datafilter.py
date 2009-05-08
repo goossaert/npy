@@ -66,7 +66,7 @@ class Numerizer:
                     self.__add_value_for_attribute(value, index) 
 
             # Process the label value
-            label = instance.get_label()
+            label = instance.get_label_number()
             try:
                 number = float(label)
             except ValueError:
@@ -196,7 +196,7 @@ class Numerizer:
                 attributes.append(number)
 
             # Process the label value
-            label_old = instance_old.get_label()
+            label_old = instance_old.get_label_number()
             try:
                 label_new = float(label_old)
             except ValueError:
@@ -308,7 +308,7 @@ class Normalizer:
                 value_new = (value - self.__min[index]) * self.__max[index] * (self.__upper_bound - self.__lower_bound) + self.__lower_bound
                 attributes_new.append(value_new)
 
-            instance_new = DataInstance(instance_old.get_index_number(), attributes_new, instance_old.get_label())
+            instance_new = DataInstance(instance_old.get_index_number(), attributes_new, instance_old.get_label_number())
             dc_dest.add_instance(instance_new)             
 
         return dc_dest

@@ -1,5 +1,5 @@
 """
-Update module.
+Update function module.
 """
 __docformat__ = "restructuredtext en"
 

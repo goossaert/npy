@@ -1,5 +1,5 @@
 """
-Label module.
+Label function module.
 """
 __docformat__ = "restructuredtext en"
 
