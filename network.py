@@ -610,6 +610,8 @@ class Network:
             struct[name_unit + "_activation_function"] = activation_function.get_name() 
             update_function = unit.get_update_function()
             struct[name_unit + "_update_function"] = update_function.get_name() 
+            error_function = unit.get_error_function()
+            struct[name_unit + "_error_function"] = error_function.get_name() 
 
         return struct 
 
@@ -629,22 +631,19 @@ class Network:
                     * unit#_nbnodes = number of nodes in the #-th unit
                     * unit#_activation_function = activation_function name in the #-th unit
                     * unit#_update_function = update_function name in the #-th unit
+                    * unit#_error_function = error_function name in the #-th unit
         """
         self.reset()
         self.__learning_rate = float(struct["learning_rate"])
         self.__nb_input = int(struct["unit1_nbnodes"])
 
-        for index_unit in range(2, int(struct["nb_units"])+1):
+        for index_unit in range(2, int(struct["nb_units"]) + 1):
             name_unit = "unit" + str(index_unit)
-
             name_activation_function = struct[name_unit + "_activation_function"]
-            activation_function = Factory.build_instance_by_name(name_activation_function)
-
             name_update_function = struct[name_unit + "_update_function"]
-            update_function = Factory.build_instance_by_name(name_update_function)
-
+            name_error_function = struct[name_unit + "_error_function"]
             nb_nodes = int(struct[name_unit + "_nbnodes"])
-            self.add_unit(nb_nodes, activation_function, update_function) 
+            self.add_unit(nb_nodes, name_activation_function, name_update_function, name_error_function) 
 
 
     def get_weights(self):
