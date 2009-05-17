@@ -2,6 +2,7 @@
 Data manager module.
 """
 __docformat__ = "restructuredtext en"
+
 ## Copyright (c) 2009 Emmanuel Goossaert 
 ##
 ## This file is part of npy.
@@ -22,7 +23,7 @@ __docformat__ = "restructuredtext en"
 
 class DataInstance:
     """
-    Represents an instance of a data set, and includes all the information
+    Represents an instance of data, and includes all the information
     that could be required: id, attributes and label.
     """
 

@@ -316,7 +316,7 @@ class Normalizer:
 
 class Filter:
     """
-    Embed a Numerizer and a Normalizer and allow to automatize the creation
+    Embeds a Numerizer and a Normalizer and allows to automatize the creation
     of those two filters, and also of their use.
 
     :IVariables:
@@ -366,6 +366,7 @@ class Filter:
         return dc_normalized
 
 
+    # TODO change name to: label_number_to_string
     def number_to_label(self, number):
         """
         Get the string value associated with the numeric value

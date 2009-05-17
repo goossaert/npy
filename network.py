@@ -30,6 +30,8 @@ from npy.data import DataInstance
 from npy.data import DataClassification
 from npy.data import DataClassified
 from npy.factory import Factory
+from npy.error import ErrorLinear
+from npy.error import ErrorOutputDifference
 
 from npy.label import *
 
@@ -270,7 +272,15 @@ class Unit:
             The error for the unit.
         """
 
-        return self.__error_function.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, self.__activation_function.activation_derivative)
+        if self.__error_function == None:
+            if index_unit == nb_unit - 1:
+                error_function = ErrorOutputDifference()
+            else:
+                error_function = ErrorLinear()
+        else:
+            error_function = self.__error_function 
+
+        return error_function.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, self.__activation_function.activation_derivative)
 
         #return self.__activation_function.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit)
 
@@ -380,7 +390,7 @@ class Network:
         return self.__label_function
 
 
-    def add_unit(self, nb_nodes, name_activation_function, name_update_function, name_error_function):
+    def add_unit(self, nb_nodes, name_activation_function, name_update_function, name_error_function=None):
         """
         Adds a unit to the network as the new output unit. Takes care of
         making the connections with the previous unit.
@@ -396,10 +406,13 @@ class Network:
                 the weights.
             name_error_function : string
                 Name of the `Error` to use to compute the error of the Unit.
+                If equal to None, then the error function is set
+                automatically, depending on the unit position in the network.
 
         :Returns:
             The `Unit` that has just been added to the network.
         """
+        # TODO the test on the names is maybe not necessary
         if nb_nodes <= 0 or name_activation_function == None or name_update_function == None:
             pass # TODO throw exception
 
@@ -413,7 +426,11 @@ class Network:
 
         activation_function = Factory.build_instance_by_name(name_activation_function)
         update_function = Factory.build_instance_by_name(name_update_function)
-        error_function = Factory.build_instance_by_name(name_error_function)
+
+        if name_error_function == None:
+            error_function = None
+        else:
+            error_function = Factory.build_instance_by_name(name_error_function)
 
         unit = Unit(nb_nodes, nb_previous_nodes, activation_function, update_function, error_function)
         self.__units.append(unit)
@@ -598,20 +615,34 @@ class Network:
             struct : dictionary
                 Structure of the current neural network.
         """
+        # General parameters and input unit
         struct = {}
         struct["learning_rate"] = self.__learning_rate
         struct["nb_units"] = len(self.__units) + 1
-
         struct["unit1_nbnodes"] = self.__nb_input
+
+        # For each hidden unit and the output unit
         for index_unit, unit in zip(range(2,len(self.__units)+2), self.__units):
+            
+            # Parameters for the current unit
             name_unit = "unit" + str(index_unit)
             struct[name_unit + "_nbnodes"] = unit.get_nb_nodes()
+
+            # Parameters for the activation function
             activation_function = unit.get_activation_function()
             struct[name_unit + "_activation_function"] = activation_function.get_name() 
+
+            # Parameters for the update function
             update_function = unit.get_update_function()
             struct[name_unit + "_update_function"] = update_function.get_name() 
+
+            # Parameters for the error function
             error_function = unit.get_error_function()
-            struct[name_unit + "_error_function"] = error_function.get_name() 
+            if error_function == None:
+                name_error_function = 'None'
+            else:
+                name_error_function = error_function.get_name()
+            struct[name_unit + "_error_function"] = name_error_function
 
         return struct 
 
@@ -642,6 +673,7 @@ class Network:
             name_activation_function = struct[name_unit + "_activation_function"]
             name_update_function = struct[name_unit + "_update_function"]
             name_error_function = struct[name_unit + "_error_function"]
+            if name_error_function == 'None': name_error_function = None
             nb_nodes = int(struct[name_unit + "_nbnodes"])
             self.add_unit(nb_nodes, name_activation_function, name_update_function, name_error_function) 
 
