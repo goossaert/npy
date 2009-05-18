@@ -94,10 +94,19 @@ class Numerizer:
             values[value_attribute] = len(values) + 1
 
 
-    def attribute_to_number(self, value_attribute, index_attribute):
+    def attribute_string_to_number(self, value_attribute, index_attribute):
         """
         Get the numeric value associated with the string value
         for a given attribute.
+
+        :Parameters:
+            index_attribute : integer 
+                Id of the attribute in the instance sequence
+            value_attribute : string 
+                Value of the attribute to convert to a number.
+
+        :Returns:
+            integer: the numeric value associated with a attribute string.
         """
 
         if not index_attribute in self.__attributes:
@@ -119,7 +128,7 @@ class Numerizer:
             self.__label[value_label] = len(self.__label) + 1
 
 
-    def label_to_number(self, label_string):
+    def label_string_to_number(self, label_string):
         """
         Get the numeric value associated with the string value
         for the label.
@@ -129,7 +138,7 @@ class Numerizer:
                 Label string to be converted into a label number.
 
         :Returns:
-            int : the label number.
+            integer : the label number.
         """
 
         if not label_string in self.__label:
@@ -138,20 +147,20 @@ class Numerizer:
         return self.__label[label_string]
 
 
-    def number_to_label(self, label_number):
+    def label_number_to_string(self, label_number):
         """
         Get the string value associated with the numeric value
         for the label.
 
         :Parameters:
-            label_number : int
+            label_number : integer
                 Label number to be converted into a label string.
 
         :Returns:
             string : the label string.
         """
 
-        label_string = None
+        label_string = None # TODO replace by an exception
 
         for string, number in self.__label.iteritems():
             if label_number == number:
@@ -192,7 +201,7 @@ class Numerizer:
                 except ValueError:
                     # Every time a non-float attribute value is met,
                     # it is added to the numerizer
-                    number = self.attribute_to_number(value, index) 
+                    number = self.attribute_string_to_number(value, index) 
                 attributes.append(number)
 
             # Process the label value
@@ -202,7 +211,7 @@ class Numerizer:
             except ValueError:
                 # Every time a non-float label value is met,
                 # it is added to the numerizer
-                label_new = self.label_to_number(label_old)
+                label_new = self.label_string_to_number(label_old)
 
             instance_new = DataInstance(instance_old.get_index_number(), attributes, label_new)
             dc_dest.add_instance(instance_new)             
@@ -292,7 +301,7 @@ class Normalizer:
 
         :Returns:
             `DataCollectionPCD` : `DataCollection` in which normalized
-            intances have to be places.
+            instances have to be places.
         """
 
         dc_dest = DataCollectionPCD()
@@ -366,18 +375,17 @@ class Filter:
         return dc_normalized
 
 
-    # TODO change name to: label_number_to_string
-    def number_to_label(self, number):
+    def label_number_to_string(self, number):
         """
         Get the string value associated with the numeric value
         for the label.
 
         :Parameters:
-            number : int
+            number : integer
                 Label number to be converted into a label string.
 
         :Returns:
             string : the label string.
         """
 
-        return self.__numerizer.number_to_label(number)
+        return self.__numerizer.label_number_to_string(number)

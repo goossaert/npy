@@ -76,9 +76,13 @@ class NetworkIO_CSV:
                 Network where to put the structure.
         """
 
-        # TODO exception file exists
-        filename = self.__stream + "_str.csv" 
-        reader = csv.reader(open(filename, "rb"))
+        try:
+            filename = self.__stream + "_str.csv" 
+            reader = csv.reader(open(filename, "rb"))
+        except IOError:
+            print "Unable to read the file:", filename
+            exit()
+
         rows = []
         for row in reader:
             rows.append(row)
@@ -101,6 +105,8 @@ class NetworkIO_CSV:
             network : Network
                 Network of which the structure has to be written.
         """
+
+        # TODO check exceptions on the write call
 
         # Retrieve the network structure
         struct = network.get_structure()
@@ -169,6 +175,7 @@ class NetworkIO_CSV:
             network : Network
                 Network of which weights need to be written.
         """
+        # TODO check exceptions on the write call
        
         # Retrieve the weights and prepare the table
         weight_network = network.get_weights()

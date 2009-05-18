@@ -324,7 +324,7 @@ class Network:
     :IVariables:
         __units : sequence of `Unit`
             Units of the network.
-        __nb_input : integer
+        __nb_nodes_input : integer
             Number of nodes in the input unit.
         __learning_rate : float
             Learning rate of the gradient descent process. 
@@ -332,19 +332,17 @@ class Network:
             Label function used to label output vectors.
     """
 
-    def __init__(self, nb_input=-1, learning_rate=-1):
+    def __init__(self, learning_rate=None):
         """
         Initializer.
 
         :Parameters:
-            nb_inputs : integer
-                Number of nodes in the input unit.
             learning_rate : float
                 Learning rate of the network.
         """
         self.__units = []
-        self.__nb_input = nb_input
         self.__learning_rate = learning_rate
+        self.__nb_nodes_input = None
         self.__label_function = None
 
 
@@ -354,8 +352,8 @@ class Network:
         to receive a new one.
         """
         self.__units = []
-        self.__nb_input = -1
-        self.__learning_rate = -1
+        self.__nb_nodes_input = None
+        self.__learning_rate = None
 
 
     # TODO delete this, only used for debugging purposes
@@ -371,14 +369,14 @@ class Network:
         self.__learning_rate = learning_rate
 
 
-    def get_nb_input(self):
-        return self.__nb_input
+    def get_nb_nodes_input(self):
+        return self.__nb_nodes_input
 
 
-    def set_nb_input(self, nb_input):
-        if nb_input <= 0:
-            pass # TODO throw exception
-        self.__nb_input = nb_input
+    #def set_nb_input(self, nb_input):
+    #    if nb_input <= 0:
+    #        pass # TODO throw exception
+    #    self.__nb_nodes_input = nb_input
 
 
     def set_label_function(self, name_label_function):
@@ -390,7 +388,7 @@ class Network:
         return self.__label_function
 
 
-    def add_unit(self, nb_nodes, name_activation_function, name_update_function, name_error_function=None):
+    def add_unit(self, nb_nodes, name_activation_function=None, name_update_function=None, name_error_function=None):
         """
         Adds a unit to the network as the new output unit. Takes care of
         making the connections with the previous unit.
@@ -410,20 +408,30 @@ class Network:
                 automatically, depending on the unit position in the network.
 
         :Returns:
-            The `Unit` that has just been added to the network.
+            The `Unit` that has just been added to the network. In the case
+            of the input unit, None is returned.
         """
-        # TODO the test on the names is maybe not necessary
-        if nb_nodes <= 0 or name_activation_function == None or name_update_function == None:
+        # A non-negative number of nodes is required, and for the non-input
+        # units, the activation and update functions must be defines.
+        if nb_nodes <= 0 \
+          or self.__nb_nodes_input != None and (name_activation_function == None or name_update_function == None):
             pass # TODO throw exception
 
+        # Handle the input unit
+        if self.__nb_nodes_input == None:
+            self.__nb_nodes_input = nb_nodes
+            return None
+
+        # Handle the other units
         if len(self.__units) == 0:
-            nb_previous_nodes = self.__nb_input
+            nb_previous_nodes = self.__nb_nodes_input
         else:
             nb_previous_nodes = self.__units[-1].get_nb_nodes()
 
         # Add 1 in order to implement the bias
         nb_previous_nodes = nb_previous_nodes + 1
 
+        # TODO check prefixes
         activation_function = Factory.build_instance_by_name(name_activation_function)
         update_function = Factory.build_instance_by_name(name_update_function)
 
@@ -496,7 +504,7 @@ class Network:
         instances = data_collection.get_instances()
         for instance in instances:
             label_number = self.compute_label(instance)
-            label_string = filter.number_to_label(label_number)
+            label_string = filter.label_number_to_string(label_number)
             data_classified = DataClassified(instance.get_index_number(), label_number, label_string)
             data_classification.add_data_classified(data_classified)
 
@@ -619,7 +627,7 @@ class Network:
         struct = {}
         struct["learning_rate"] = self.__learning_rate
         struct["nb_units"] = len(self.__units) + 1
-        struct["unit1_nbnodes"] = self.__nb_input
+        struct["unit1_nbnodes"] = self.__nb_nodes_input
 
         # For each hidden unit and the output unit
         for index_unit, unit in zip(range(2,len(self.__units)+2), self.__units):
@@ -666,7 +674,7 @@ class Network:
         """
         self.reset()
         self.__learning_rate = float(struct["learning_rate"])
-        self.__nb_input = int(struct["unit1_nbnodes"])
+        self.__nb_nodes_input = int(struct["unit1_nbnodes"])
 
         for index_unit in range(2, int(struct["nb_units"]) + 1):
             name_unit = "unit" + str(index_unit)

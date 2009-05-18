@@ -74,7 +74,9 @@ class Factory:
             instance : instance of a class that implements `FactoryMixin`
                 Instance of the class
         """
-        # TODO First check that the name is not already present in the dict
+        # There is no need to check that the name is not already present
+        # in the dictionary. We simply overwrite any instance already present
+        # by a new one, since this is the costless operation here.
         name = instance.get_name()
         Factory.__subclasses[name] = instance 
 

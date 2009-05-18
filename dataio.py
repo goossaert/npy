@@ -20,10 +20,10 @@ __docformat__ = "restructuredtext en"
 ## You should have received a copy of the GNU General Public License
 ## along with npy.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import csv
 import sys
 from npy.data import DataInstance
+from npy.data import DataCollectionRAW
 
 class DataIO_CSV:
     """
@@ -122,6 +122,7 @@ class DataIO_CSV:
         self.__attribute_label = name
 
 
+    # TODO there is a read method, but not a write: code the write one!
     def read(self, data_collection):
         """
         Read a CSV file and fill the provided DataCollectionRAW with instances.
@@ -130,17 +131,22 @@ class DataIO_CSV:
             data_collection : DataCollectionRAW
                 Data Collection to be filled with the file content.
         """
-        # TODO check that data_collection is indeed a DataCollectionRAW
+        if not isinstance(data_collection, DataCollectionRAW):
+            pass # TODO throw exception for the bad class type
         
-        # TODO exception file exists
         # Store the file content into a sequence
-        filename = self.__stream + ".csv" 
-        reader = csv.reader(open(filename, "rb"))
+        try:
+            filename = self.__stream + ".csv" 
+            reader = csv.reader(open(filename, "rb"))
+        except IOError:
+            print "Unable to read the file:", filename
+            exit()
+            
         rows = []
         for row in reader:
             rows.append(row)
 
-        # Check that we can find the label index
+        # Check that we can find the label index in the attribute list
         index_label = -1
         index_label_found = True 
         try:
@@ -151,7 +157,7 @@ class DataIO_CSV:
         if not index_label_found:
             pass #TODO send exception: we cannot work without labels
 
-        # Check that we can find the id index
+        # Check that we can find the id index in the attribute list
         index_id = -1
         index_id_found = True 
         try:
