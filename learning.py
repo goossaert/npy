@@ -24,6 +24,7 @@ __docformat__ = "restructuredtext en"
 from factory import FactoryMixin
 from factory import Factory
 from metric import Metric
+from exception import *
 
 class Learning(FactoryMixin):
     """
@@ -70,13 +71,18 @@ class LearningSimple(Learning):
 
         :Returns:
             integer : the number of iterations in the learning.
+
+        :Raises NpyValueError:
+            If interval_check is lower than 1.
+
+        :Raises NpyTransferFunctionError:
+            If name_metric_function does not correspond to a metric function.
         """
         
         if interval_check < 1:
-            #TODO exception
-            pass
+            raise NpyValueError, 'interval_check has to be greater or equal to 1'
 
-        #TODO check that the prefix is me 
+        Factory.check_prefix(name_metric_function, 'me_')
         metric_function = Factory.build_instance_by_name(name_metric_function)
 
         nb_iterations_current = 0

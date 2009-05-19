@@ -49,7 +49,7 @@ class Error(FactoryMixin):
                 computation.
             desired_output : sequence of floats
                 Output desired for the current instance. This is the
-                output at the end of the process (TODO)
+                output at the end of the process.
             outputs : sequence
                 All the output of the different layers. *At the
                 moment a layer receive this information, only the
@@ -104,9 +104,12 @@ class ErrorLinear(Error):
 
 
     def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, activation_derivative):
-
-        # TODO check on the next_unit_weights first, to be sure we are
-        #      not in a output unit
+        """
+        :Raises NpyTransferFunctionError:
+            If ErrorLinear is used in an output `Unit`.
+        """
+        if next_unit_weights == None:
+            raise NpyTransferFunctionError, 'ErrorLinear cannot be used in an output unit.'
         
         # Pre-allocate the error_sum list so that we can loop on it
         error_sum = []

@@ -67,6 +67,59 @@ class NetworkIO_CSV:
         return self.__stream
 
 
+    def write_table(self, stream_info, table):
+        """
+        Write a table to a CSV file.
+
+        :Parameters:
+            stream_info : string
+                Additional information regarding the stream
+            table : sequence of sequence
+                Table to write
+
+        :Raises NpyStreamError:
+            If a problem occurs while writing the file.
+        """
+        filename = self.__stream + stream_info 
+        string_error = 'Unable to write the file: ' + filename
+        try:            writer = csv.writer(file(filename, "w"))
+        except IOError: raise NpyStreamError, string_error
+
+        for row in table:
+            try:            writer.writerow(row)
+            except IOError: raise NpyStreamError, string_error
+
+
+    def read_table(self, stream_info):
+        """
+        Read a table from a CSV file.
+
+        :Parameters:
+            stream_info : string
+                Additional information regarding the stream
+            table : sequence of sequence
+                Table to write
+
+        :Raises NpyStreamError:
+            If a problem occurs while reading the file.
+
+        :Returns:
+            sequence of sequence: the table read from the file
+        """
+        try:
+            filename = self.__stream + stream_info
+            reader = csv.reader(open(filename, "rb"))
+        except IOError:
+            string_error = 'Unable to read the file: ' + filename
+            raise NpyStreamError, string_error
+
+        table = []
+        for row in reader:
+            table.append(row)
+
+        return table
+
+
     def read_structure(self, network):
         """
         Read a structure and load it in a given neural network
@@ -74,25 +127,17 @@ class NetworkIO_CSV:
         :Parameters:
             network : Network
                 Network where to put the structure.
+
+        :Raises NpyStreamError:
+            If a problem occurs while reading the file.
         """
 
-        try:
-            filename = self.__stream + "_str.csv" 
-            reader = csv.reader(open(filename, "rb"))
-        except IOError:
-            print "Unable to read the file:", filename
-            exit()
-
-        rows = []
-        for row in reader:
-            rows.append(row)
+        table = self.read_table('_str.csv')
    
         # build the information dictionary as we know it
         struct = {}
-        for field, value in zip(rows[0], rows[1]):
+        for field, value in zip(table[0], table[1]):
             struct[field] = value 
-
-        #print struct
 
         network.set_structure(struct)
 
@@ -104,9 +149,10 @@ class NetworkIO_CSV:
         :Parameters:
             network : Network
                 Network of which the structure has to be written.
-        """
 
-        # TODO check exceptions on the write call
+        :Raises NpyStreamError:
+            If a problem occurs while reading the file.
+        """
 
         # Retrieve the network structure
         struct = network.get_structure()
@@ -119,12 +165,7 @@ class NetworkIO_CSV:
             values.append(v)
         table = [ fields, values ]
 
-        # Write the table to the file
-        # TODO exception file exists
-        filename = self.__stream + "_str.csv" 
-        csvwriter = csv.writer(file(filename, "w"))
-        for row in table:
-            csvwriter.writerow(row)
+        self.write_table('_str.csv', table) 
 
 
     def read_weights(self,network):
@@ -134,21 +175,15 @@ class NetworkIO_CSV:
         :Parameters:
             network : Network
                 Network of which weights need to be read.
-        """
-        # TODO should check if the structure is valid, but that could create
-        # problems if the users use this as a semantic assumption in their code.
 
+        :Raises NpyStreamError:
+            If a problem occurs while reading the file.
+        """
         # Build the sequence that will be filled with weights
         weight_network = network.get_weights()
        
-        # TODO exception file exists
-        filename = self.__stream + "_wgt.csv" 
-        reader = csv.reader(open(filename, "rb"))
-
-        # Retrieve the field row 
-        for row in reader:
-            row_fields = row
-            break 
+        table = self.read_table('_wgt.csv')
+        row_fields = table[0]
 
         # Build the fieldname reference
         fields = {}
@@ -156,7 +191,7 @@ class NetworkIO_CSV:
             fields[field] = index_field
        
         # Fill the weight table
-        for row in reader:
+        for row in table[1:]:
             index_unit = int(row[fields["index_unit"]]) - 2
             index_node = int(row[fields["index_node"]]) - 1
             index_weight = int(row[fields["index_weight"]]) - 1
@@ -174,9 +209,10 @@ class NetworkIO_CSV:
         :Parameters:
             network : Network
                 Network of which weights need to be written.
+
+        :Raises NpyStreamError:
+            If a problem occurs while reading the file.
         """
-        # TODO check exceptions on the write call
-       
         # Retrieve the weights and prepare the table
         weight_network = network.get_weights()
         table = []
@@ -191,10 +227,4 @@ class NetworkIO_CSV:
                 for index_weight, weight in zip(range(1,len(weight_node)+1), weight_node):
                     table.append([index_unit, index_node, index_weight, weight])
 
-        # TODO exception file exists
-        # TODO check whether this code can be factorized with write_structure()
-        filename = self.__stream + "_wgt.csv" 
-        csvwriter = csv.writer(file(filename, "w"))
-        for row in table:
-            csvwriter.writerow(row)
-
+        self.write_table('_wgt.csv', table) 

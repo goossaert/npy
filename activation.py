@@ -28,6 +28,7 @@ from error import ErrorLinear
 from label import LabelMax
 from factory import FactoryMixin
 from factory import Factory
+from exception import *
 
 
 class Activation(FactoryMixin):

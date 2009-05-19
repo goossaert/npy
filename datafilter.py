@@ -84,10 +84,15 @@ class Numerizer:
                 Id of the attribute in the instance sequence
             value_attribute : string 
                 Value of the attribute to store.
+
+        :Raises NpyIndexError:
+            If the given index is already in use.
         """
 
         if not index_attribute in self.__attributes:
             self.__attributes[index_attribute] = {}
+        else:
+            raise NpyIndexError, 'Index value already used'
 
         values = self.__attributes[index_attribute]
         if not value_attribute in values:
@@ -110,11 +115,11 @@ class Numerizer:
         """
 
         if not index_attribute in self.__attributes:
-            return None #TODO throw exception instead
+            return None
 
         values = self.__attributes[index_attribute]
         if not value_attribute in values:
-            return None #TODO throw exception instead
+            return None
 
         return values[value_attribute]
 
@@ -139,10 +144,11 @@ class Numerizer:
 
         :Returns:
             integer : the label number.
+            Returns None if the label string is not found.
         """
 
         if not label_string in self.__label:
-            return None #TODO throw exception instead
+            return None
 
         return self.__label[label_string]
 
@@ -158,9 +164,10 @@ class Numerizer:
 
         :Returns:
             string : the label string.
+            Returns None if the label index is not found.
         """
 
-        label_string = None # TODO replace by an exception
+        label_string = None
 
         for string, number in self.__label.iteritems():
             if label_number == number:
@@ -182,9 +189,12 @@ class Numerizer:
 
         :Returns:
             `DataCollectionPCD` : Numerized data collection.
+
+        :Raises NpyDataTypeError:
+            If dc_source is not of DataCollectionRAW type.
         """
         if not isinstance(dc_source, DataCollectionRAW):
-            pass #TODO throw exception
+            raise NpyDataTypeError, 'dc_source must be a DataCollectionRAW'
 
         dc_dest = DataCollectionPCD()
         dc_dest.set_name_attribute(dc_source.get_name_attribute())
@@ -246,10 +256,12 @@ class Normalizer:
         :Parameters:
             dc_source : `DataCollectionPCD`
                 Data to use in order to build the normalizer.
+
+        :Raises NpyDataTypeError:
+            If dc_source is not of DataCollectionPCD type.
         """
-        
         if not isinstance(dc_source, DataCollectionPCD):
-            pass #TODO throw exception
+            raise NpyDataTypeError, 'dc_source must be a DataCollectionPCD'
 
         self.__lower_bound = float(lower_bound)
         self.__upper_bound = float(upper_bound)

@@ -32,6 +32,7 @@ from npy.data import DataClassified
 from npy.factory import Factory
 from npy.error import ErrorLinear
 from npy.error import ErrorOutputDifference
+from npy.exception import *
 
 from npy.label import *
 
@@ -66,7 +67,14 @@ class Node:
 
 
     def set_weights(self, weights):
-        # TODO check the number of weights and raise exception if not equal
+        """
+        :Raises NpyDataTypeError:
+            If the number of weights given in parameters of different than
+            the number already present in the network.
+        """
+        if len(weights) != len(self.__weights):
+            raise NpyDataTypeError, 'The number of weights must be the same as the number already present in the network.'
+
         self.__weights = weights
 
 
@@ -191,22 +199,6 @@ class Unit:
         return self.__error_function
 
 
-    def load_values(self, values):
-        """
-        Load values nodes of the current unit
-
-        TODO Not sure what this does        
-
-        :Parameters:
-            values
-                TODO
-
-        :Returns:
-        """
-        def loadval(node, val): node.load_value(val)
-        map(loadval, self.__nodes, values)
-
-
     def compute_output(self, input):
         """
         Compute the output values for the current unit given
@@ -219,7 +211,6 @@ class Unit:
         :Returns:
             sequence of floats : the output data for the current unit.
         """
-
         values = []
         for node in self.__nodes: 
             values.append(node.compute_output(input, self.__activation_function))
@@ -253,7 +244,7 @@ class Unit:
                 computation.
             desired_output : sequence of floats
                 Output desired for the current instance. This is the
-                output at the end of the process (TODO)
+                output at the end of the process.
             outputs : sequence
                 All the output of the different layers. *At the
                 moment a layer receive this information, only the
@@ -356,9 +347,8 @@ class Network:
         self.__learning_rate = None
 
 
-    # TODO delete this, only used for debugging purposes
     def get_units(self):
-        return self.__units
+        return self.__units[:]
 
     
     def get_learning_rate(self):
@@ -373,14 +363,12 @@ class Network:
         return self.__nb_nodes_input
 
 
-    #def set_nb_input(self, nb_input):
-    #    if nb_input <= 0:
-    #        pass # TODO throw exception
-    #    self.__nb_nodes_input = nb_input
-
-
     def set_label_function(self, name_label_function):
-        #TODO check that the prefix is la
+        """
+        :Raises NpyTransferFunctionError:
+            If name_label_function does not correspond to a label function.
+        """
+        Factory.check_prefix(name_label_function, 'la_')
         self.__label_function = Factory.build_instance_by_name(name_label_function)
 
 
@@ -410,12 +398,18 @@ class Network:
         :Returns:
             The `Unit` that has just been added to the network. In the case
             of the input unit, None is returned.
+
+        :Raises NpyTransferFunctionError:
+            If the function names do not correspond to valid functions.
         """
         # A non-negative number of nodes is required, and for the non-input
         # units, the activation and update functions must be defines.
-        if nb_nodes <= 0 \
-          or self.__nb_nodes_input != None and (name_activation_function == None or name_update_function == None):
-            pass # TODO throw exception
+        if nb_nodes <= 0:
+            raise NpyUnitError, 'Number of nodes must be strictly positive.'
+
+        if self.__nb_nodes_input != None \
+          and (name_activation_function == None or name_update_function == None):
+            raise NpyUnitError, 'Activation and update functions must be specified.'
 
         # Handle the input unit
         if self.__nb_nodes_input == None:
@@ -431,15 +425,20 @@ class Network:
         # Add 1 in order to implement the bias
         nb_previous_nodes = nb_previous_nodes + 1
 
-        # TODO check prefixes
+        # Retreive transfert function instances
+        Factory.check_prefix(name_activation_function, 'ac_')
         activation_function = Factory.build_instance_by_name(name_activation_function)
+
+        Factory.check_prefix(name_update_function, 'up_')
         update_function = Factory.build_instance_by_name(name_update_function)
 
         if name_error_function == None:
             error_function = None
         else:
+            Factory.check_prefix(name_error_function, 'er_')
             error_function = Factory.build_instance_by_name(name_error_function)
 
+        # Create the unit and add it to the network
         unit = Unit(nb_nodes, nb_previous_nodes, activation_function, update_function, error_function)
         self.__units.append(unit)
         return unit
@@ -467,8 +466,7 @@ class Network:
         return values
 
     
-    #TODO rename in classify_instance
-    def compute_label(self, instance):
+    def classify_instance(self, instance):
         """
         Compute the output values for the network.
 
@@ -503,7 +501,7 @@ class Network:
 
         instances = data_collection.get_instances()
         for instance in instances:
-            label_number = self.compute_label(instance)
+            label_number = self.classify_instance(instance)
             label_string = filter.label_number_to_string(label_number)
             data_classified = DataClassified(instance.get_index_number(), label_number, label_string)
             data_classification.add_data_classified(data_classified)
@@ -591,8 +589,13 @@ class Network:
 
         :Returns:
             sequence : the vector associated with the provided label.
+
+        :Raises NpyTransferFunctionError:
+            If no label function is defined for the network.
         """
-        # TODO check if a label function has been defined for the network.
+        if self.__label_function == None:
+            raise NpyTransferFunctionError, 'No label function is defined for the network.'
+
         nb_nodes_last_unit = self.__units[-1].get_nb_nodes()
         return self.__label_function.label_to_vector(label, nb_nodes_last_unit)
 
@@ -609,8 +612,12 @@ class Network:
 
         :Returns:
             number : the label associated with the vector.
+
+        :Raises NpyTransferFunctionError:
+            If no label function is defined for the network.
         """
-        # TODO check if a label function has been defined for the network.
+        if self.__label_function == None:
+            raise NpyTransferFunctionError, 'No label function is defined for the network.'
         return self.__label_function.vector_to_label(vector)
 
 

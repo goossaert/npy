@@ -130,17 +130,27 @@ class DataIO_CSV:
         :Parameters:
             data_collection : DataCollectionRAW
                 Data Collection to be filled with the file content.
+
+        :Raises NpyDataTypeError:
+            If dc_source is not of DataCollectionRAW type.
+
+        :Raises NpyStreamError:
+            If a problem occurs while reading the file.
+
+        :Raises NpyIndexError:
+            If the label index is not found, making it impossible to create
+            a valid DataCollection.
         """
         if not isinstance(data_collection, DataCollectionRAW):
-            pass # TODO throw exception for the bad class type
+            raise NpyDataTypeError, 'dc_source must be a DataCollectionRAW'
         
         # Store the file content into a sequence
         try:
             filename = self.__stream + ".csv" 
             reader = csv.reader(open(filename, "rb"))
         except IOError:
-            print "Unable to read the file:", filename
-            exit()
+            string_error = 'Unable to read the file: ' + filename
+            raise NpyStreamError, string_error
             
         rows = []
         for row in reader:
@@ -155,7 +165,7 @@ class DataIO_CSV:
             index_label_found = False
 
         if not index_label_found:
-            pass #TODO send exception: we cannot work without labels
+            raise NpyIndexError
 
         # Check that we can find the id index in the attribute list
         index_id = -1

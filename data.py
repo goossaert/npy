@@ -21,6 +21,9 @@ __docformat__ = "restructuredtext en"
 ## along with npy.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from exception import *
+
+
 class DataInstance:
     """
     Represents an instance of data, and includes all the information
@@ -88,9 +91,14 @@ class DataCollection:
         :Parameters:
             instance : `Instance`
                 Instance to add to the data collection.
+
+        :Raises NpyIndexError:
+            If the instance index already exists in the `DataCollection`.
         """
 
-        # TODO throw an exception if the id is already in the dictionary, and update the doc to tell we throw an exception.
+        if instance.get_index_number() in self.__instances:
+            raise NpyIndexError, 'Index already exists in the DataCollection'
+
         self.__instances[instance.get_index_number()] = instance
 
 
@@ -104,9 +112,13 @@ class DataCollection:
 
         :Returns:
             The instance of which the id number has been passed.
+            Returns None if no `Instance` has the given index_number in
+            the `DataCollection`.
         """
 
-        # TODO throw an exception if the id in not in the dictionary, and update the doc to tell we throw an exception.
+        if not index_number in self.__instances:
+            return None
+
         return self.__instances[index_number]
 
 
@@ -225,9 +237,13 @@ class DataClassification:
         :Parameters:
             data_classified : DataClassified
                 Classified data to add to the data classification.
+
+        :Raises NpyIndexError:
+            If the instance index already exists in the `DataClassification`.
         """
 
-        # TODO throw an exception if the id is already in the dictionary, and update the doc to tell we throw an exception.
+        if data_classified.get_index_number() in self.__classified_instances:
+            raise NpyIndexError, 'Index already exists in the DataClassification'
 
         self.__classified_instances[data_classified.get_index_number()] = data_classified
 
@@ -242,9 +258,12 @@ class DataClassification:
 
         :Returns:
             The classified data of which the id number has been passed.
+            Returns None if no `DataClassified` has the given index_number in
+            the `DataClassification`.
         """
-
-        # TODO throw an exception if the id in not in the dictionary, and update the doc to tell we throw an exception.
+        
+        if not index_number in self.__classified_instances:
+            return None
 
         return self.__classified_instances[index_number]
 

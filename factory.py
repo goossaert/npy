@@ -23,6 +23,8 @@ __docformat__ = "restructuredtext en"
 
 import inspect
 
+from exception import *
+
 
 class Factory:
     """
@@ -48,6 +50,25 @@ class Factory:
 
 
     @staticmethod
+    def check_prefix(name, prefix):
+        """
+        Check that the given name starts with the given prefix.
+
+        :Parameters:
+            name : string
+                Name of the class to check
+            prefix : string
+                Prefix that the name is supposed to have
+
+        :Returns:
+            An instance of the required update_function.
+        """
+        string_error = name + ' was supposed to start with the prefix: ' + prefix
+        if not name.startswith(prefix):
+            raise NpyTransferFunctionError, string_error
+
+
+    @staticmethod
     def build_instance_by_name(name):
         """
         Build an instance of the class given in parameter.
@@ -59,7 +80,10 @@ class Factory:
         :Returns:
             An instance of the required update_function.
         """
-        # TODO What happens when the name is not in the dict?
+        string_error = 'The name ' + name + ' has not been defined'
+        if not name in Factory.__subclasses:
+            raise NpyTransferFunctionError, string_error
+
         return Factory.__subclasses[name].build_instance()
     
     
