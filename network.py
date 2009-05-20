@@ -25,10 +25,7 @@ import math
 import itertools
 import random
 
-from npy.data import DataCollection
-from npy.data import DataInstance
-from npy.data import DataClassification
-from npy.data import DataClassified
+from npy.data import *
 from npy.factory import Factory
 from npy.error import ErrorLinear
 from npy.error import ErrorOutputDifference
@@ -102,12 +99,12 @@ class Unit:
     Neural network unit class.
 
     :IVariables:
-        __nodes : sequence of Node
+        __nodes : sequence of `Node`
             Nodes in the current unit. 
-        __activation_function : Activation
+        __activation_function : `Activation`
             `Activation` instance used to compute the activation function
             for the current unit.
-        __update_function : Update
+        __update_function : `Update`
             `Update` instance used to compute the updates to the weights.
         __error_function : `Error`
             `Error` instance used to compute the error of the unit.
@@ -122,10 +119,10 @@ class Unit:
                 Number of nodes required in the unit. 
             previous_nb_node : integer
                 Number of nodes in the previous unit.
-            activation_function : Activation
+            activation_function : `Activation`
                 `Activation` instance used to compute the activation function
                 for the current unit.
-            update_function : Update
+            update_function : `Update`
                 `Update` instance used to compute the updates to the weights.
             error_function : `Error`
                 `Error` instance used to compute the error of the unit.
@@ -482,40 +479,37 @@ class Network:
         return self.vector_to_label(values[-1])
 
 
-    def classify_data_collection(self, data_collection, filter):
+    def classify_data_set(self, data_set):
         """
-        Classify a `DataCollection`.
+        Classify a `DataSet`.
 
         :Parameters:
-            data_collection : `DataCollection`
-                `DataCollection` to classify.
-            filter : 'Filter'
-                `Filter` to use to filter the data 
+            data_set : `DataSet`
+                `DataSet` to classify.
 
         :Returns:
-            `DataClassification` : Classification of the `DataCollection`
+            `DataClassification` : Classification of the `DataSet`
             given in parameter.
         """
 
         data_classification = DataClassification()
 
-        instances = data_collection.get_instances()
+        instances = data_set.get_instances()
         for instance in instances:
             label_number = self.classify_instance(instance)
-            label_string = filter.label_number_to_string(label_number)
-            data_classified = DataClassified(instance.get_index_number(), label_number, label_string)
-            data_classification.add_data_classified(data_classified)
+            data_label = DataLabel(instance.get_index_number(), label_number)
+            data_classification.add_data_label(data_label)
 
         return data_classification
         
 
-    def learn_iteration(self, data_collection, nb_iteration):
+    def learn_iteration(self, data_set, nb_iteration):
         """
-        Makes the network learn the instances of the given `DataCollection`.
+        Makes the network learn the instances of the given `DataSet`.
         """
 
         for i in range(nb_iteration):
-            for instance in data_collection.get_instances():
+            for instance in data_set.get_instances():
                 self.learn_instance(instance)
 
 

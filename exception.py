@@ -51,7 +51,7 @@ class NpyTransferFunctionError(NpyException):
 
 class NpyDataTypeError(NpyException):
     """
-    Raised when the type of a parameter is not the one that is excepted.
+    Raised when the type of a parameter is not the one that is expected.
     """
     pass
 

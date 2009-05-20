@@ -23,7 +23,7 @@ __docformat__ = "restructuredtext en"
 import csv
 import sys
 from npy.data import DataInstance
-from npy.data import DataCollectionRAW
+from npy.data import DataSetMixed
 
 class DataIO_CSV:
     """
@@ -123,26 +123,26 @@ class DataIO_CSV:
 
 
     # TODO there is a read method, but not a write: code the write one!
-    def read(self, data_collection):
+    def read(self, data_set):
         """
-        Read a CSV file and fill the provided DataCollectionRAW with instances.
+        Read a CSV file and fill the provided DataSetMixed with instances.
 
         :Parameters:
-            data_collection : DataCollectionRAW
+            data_set : DataSetMixed
                 Data Collection to be filled with the file content.
 
         :Raises NpyDataTypeError:
-            If dc_source is not of DataCollectionRAW type.
+            If ds_source is not of DataSetMixed type.
 
         :Raises NpyStreamError:
             If a problem occurs while reading the file.
 
         :Raises NpyIndexError:
             If the label index is not found, making it impossible to create
-            a valid DataCollection.
+            a valid DataSet.
         """
-        if not isinstance(data_collection, DataCollectionRAW):
-            raise NpyDataTypeError, 'dc_source must be a DataCollectionRAW'
+        if not isinstance(data_set, DataSetMixed):
+            raise NpyDataTypeError, 'ds_source must be a DataSetMixed'
         
         # Store the file content into a sequence
         try:
@@ -184,7 +184,7 @@ class DataIO_CSV:
         #for name in rows[0]:
         #    if name != self.__attribute_label and name != self.__attribute_id:
         #        name_attribute.append(name)
-        data_collection.set_name_attribute(name_attribute) 
+        data_set.set_name_attribute(name_attribute) 
 
         # Create instances with the remaining lines
         for index_row, row in enumerate(rows[1:]):
@@ -207,4 +207,4 @@ class DataIO_CSV:
             label = row[index_label]
 
             instance = DataInstance(index_instance, value_attribute, label)
-            data_collection.add_instance(instance)
+            data_set.add_instance(instance)

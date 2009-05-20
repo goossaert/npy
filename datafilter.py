@@ -22,39 +22,39 @@ __docformat__ = "restructuredtext en"
 
 import sys
 
-from npy.data import DataCollectionRAW
-from npy.data import DataCollectionPCD
+from npy.data import DataSetMixed
+from npy.data import DataSetNumeric
 from npy.data import DataInstance
 
 class Numerizer:
     """
-    Transforms a `DataCollectionRAW` into a `DataCollectionPCD`
+    Transforms a `DataSetMixed` into a `DataSetNumeric`
     by transforming all the ordinal and categorical attributes
     into numerical interval attributes.
     
     :IVariables:
         __attributes : dictionary
-            Dictionary of the non-numeric attributes of the data collection
+            Dictionary of the non-numeric attributes of the data set
             used to build this Numerizer. Each key is a dictionary itself,
             and associates a number to each string value of a given attribute.
         __label : dictionary
-            Dictionary of the non-numeric labels of the `DataCollection`.
+            Dictionary of the non-numeric labels of the `DataSet`.
 
     """
 
-    def __init__(self, dc_source):
+    def __init__(self, ds_source):
         """ 
-        Builds a `Numerizer` based on the data provided in dc_source.
+        Builds a `Numerizer` based on the data provided in ds_source.
 
         :Parameters:
-            dc_source : `DataCollectionRAW`
+            ds_source : `DataSetMixed`
                 Data to use in order to build the `Numerizer`.
         """
 
         self.__attributes = {}
         self.__label = {}
 
-        instances = dc_source.get_instances()
+        instances = ds_source.get_instances()
         for instance in instances:
             # Process the attribute values
             for index, value in enumerate(instance.get_attributes()):
@@ -177,29 +177,29 @@ class Numerizer:
         return label_string
 
              
-    def numerize(self, dc_source):
+    def numerize(self, ds_source):
         """
-        Transforms a `DataCollectionRAW` into a `DataCollectionPCD`
+        Transforms a `DataSetMixed` into a `DataSetNumeric`
         by transforming all the ordinal and categorical attributes
         into numerical interval attributes.
 
         :Parameters:
-            dc_source : `DataCollectionRAW`
+            ds_source : `DataSetMixed`
                 Data collection to numerize.
 
         :Returns:
-            `DataCollectionPCD` : Numerized data collection.
+            `DataSetNumeric` : Numerized data set.
 
         :Raises NpyDataTypeError:
-            If dc_source is not of DataCollectionRAW type.
+            If ds_source is not of DataSetMixed type.
         """
-        if not isinstance(dc_source, DataCollectionRAW):
-            raise NpyDataTypeError, 'dc_source must be a DataCollectionRAW'
+        if not isinstance(ds_source, DataSetMixed):
+            raise NpyDataTypeError, 'ds_source must be a DataSetMixed'
 
-        dc_dest = DataCollectionPCD()
-        dc_dest.set_name_attribute(dc_source.get_name_attribute())
+        ds_dest = DataSetNumeric()
+        ds_dest.set_name_attribute(ds_source.get_name_attribute())
 
-        instances = dc_source.get_instances()
+        instances = ds_source.get_instances()
         for instance_old in instances:
 
             attributes = []
@@ -224,55 +224,55 @@ class Numerizer:
                 label_new = self.label_string_to_number(label_old)
 
             instance_new = DataInstance(instance_old.get_index_number(), attributes, label_new)
-            dc_dest.add_instance(instance_new)             
+            ds_dest.add_instance(instance_new)             
 
-        return dc_dest 
+        return ds_dest 
 
 
 
 class Normalizer:
     """
-    Transforms a `DataCollectionPCD` into a `DataCollectionPCD` by transforming
+    Transforms a `DataSetNumeric` into a `DataSetNumeric` by transforming
     all the numerical values into values strictly contained into a given
     interval.
 
     :IVariables:
         __lower_bound : float
             Lower bound of the interval into which the values of the
-            `DataCollection` have to be translated. 
+            `DataSet` have to be translated. 
         __upper_bound : float
             Upper bound of the interval into which the values of the
-            `DataCollection` have to be translated. 
+            `DataSet` have to be translated. 
         __min : sequence
             Sequence of the smallest possible values for every attribute.
         __max : sequence
             Sequence of the highest possible values for every attribute.
     """
 
-    def __init__(self, dc_source, lower_bound=0, upper_bound=1):
+    def __init__(self, ds_source, lower_bound=0, upper_bound=1):
         """
-        Builds a `Normalizer` based on the data provided in dc_source.
+        Builds a `Normalizer` based on the data provided in ds_source.
 
         :Parameters:
-            dc_source : `DataCollectionPCD`
+            ds_source : `DataSetNumeric`
                 Data to use in order to build the normalizer.
 
         :Raises NpyDataTypeError:
-            If dc_source is not of DataCollectionPCD type.
+            If ds_source is not of DataSetNumeric type.
         """
-        if not isinstance(dc_source, DataCollectionPCD):
-            raise NpyDataTypeError, 'dc_source must be a DataCollectionPCD'
+        if not isinstance(ds_source, DataSetNumeric):
+            raise NpyDataTypeError, 'ds_source must be a DataSetNumeric'
 
         self.__lower_bound = float(lower_bound)
         self.__upper_bound = float(upper_bound)
         self.__min = None
         self.__max = None
 
-        nb_attributes = dc_source.get_nb_attributes()
+        nb_attributes = ds_source.get_nb_attributes()
         value_min = [ float( sys.maxint) for i in range(nb_attributes) ]
         value_max = [ float(-sys.maxint) for i in range(nb_attributes) ]
 
-        instances = dc_source.get_instances()
+        instances = ds_source.get_instances()
         for instance in instances:
             # Process the attribute values
             for index, value in enumerate(instance.get_attributes()):
@@ -302,24 +302,24 @@ class Normalizer:
         self.__max = value_max
 
              
-    def normalize(self, dc_source):
+    def normalize(self, ds_source):
         """
-        Transforms a `DataCollectionPCD` into a `DataCollectionPCD`
+        Transforms a `DataSetNumeric` into a `DataSetNumeric`
         by normalizing the values of the attributes.
 
         :Parameters:
-            dc_source : `DataCollectionPCD` 
+            ds_source : `DataSetNumeric` 
                 Data collection to normalize.
 
         :Returns:
-            `DataCollectionPCD` : `DataCollection` in which normalized
+            `DataSetNumeric` : `DataSet` in which normalized
             instances have to be places.
         """
 
-        dc_dest = DataCollectionPCD()
-        dc_dest.set_name_attribute(dc_source.get_name_attribute())
+        ds_dest = DataSetNumeric()
+        ds_dest.set_name_attribute(ds_source.get_name_attribute())
 
-        instances = dc_source.get_instances()
+        instances = ds_source.get_instances()
         for instance_old in instances:
 
             attributes_new = []
@@ -330,9 +330,9 @@ class Normalizer:
                 attributes_new.append(value_new)
 
             instance_new = DataInstance(instance_old.get_index_number(), attributes_new, instance_old.get_label_number())
-            dc_dest.add_instance(instance_new)             
+            ds_dest.add_instance(instance_new)             
 
-        return dc_dest
+        return ds_dest
 
 
 class Filter:
@@ -347,44 +347,44 @@ class Filter:
             `Normalizer` used by the filter.
     """
    
-    def __init__(self,dc_source,normalizer_lower_bound=None,normalizer_upper_bound=None):
+    def __init__(self,ds_source,normalizer_lower_bound=None,normalizer_upper_bound=None):
         """
         Initializer.
 
         :Parameters: 
-            dc_source : `DataCollection`
-                `DataCollection` used to create the filter.
+            ds_source : `DataSet`
+                `DataSet` used to create the filter.
             normalizer_lower_bound : float
                 Lower bound used by the `Normalizer`.
             normalizer_upper_bound : float
                 Upper bound used by the `Normalizer`.
         """
 
-        self.__numerizer = Numerizer(dc_source)
-        dc_numerized = self.__numerizer.numerize(dc_source)
+        self.__numerizer = Numerizer(ds_source)
+        ds_numerized = self.__numerizer.numerize(ds_source)
 
         if normalizer_lower_bound != None or normalizer_upper_bound != None:
-            self.__normalizer = Normalizer(dc_numerized, normalizer_lower_bound, normalizer_upper_bound)
+            self.__normalizer = Normalizer(ds_numerized, normalizer_lower_bound, normalizer_upper_bound)
         else:
-            self.__normalizer = Normalizer(dc_numerized)
+            self.__normalizer = Normalizer(ds_numerized)
             
 
-    def filter(self, dc_source):
+    def filter(self, ds_source):
         """
-        Filter dc_source and produce and numerized and normalized
-        data collection.
+        Filter ds_source and produce and numerized and normalized
+        data set.
         
         :Parameters:
-            dc_source : `DataCollectionPCD` 
-                `DataCollection` to filter.
+            ds_source : `DataSetNumeric` 
+                `DataSet` to filter.
 
         :Returns:
-            `DataCollectionPCD` : data collection filtered
+            `DataSetNumeric` : data set filtered
         """
 
-        dc_numerized = self.__numerizer.numerize(dc_source)
-        dc_normalized = self.__normalizer.normalize(dc_numerized)
-        return dc_normalized
+        ds_numerized = self.__numerizer.numerize(ds_source)
+        ds_normalized = self.__normalizer.normalize(ds_numerized)
+        return ds_normalized
 
 
     def label_number_to_string(self, number):

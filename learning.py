@@ -38,9 +38,9 @@ class Learning(FactoryMixin):
         FactoryMixin.__init__(self)
 
 
-    def learn(self, network, data_collection, filter, name_metric_function, metric_value_min, nb_iterations_max, interval_check=100):
+    def learn(self, network, data_set, name_metric_function, metric_value_min, nb_iterations_max, interval_check=100):
         """
-        Apply a learning process upon a `DataCollection`.
+        Apply a learning process upon a `DataSet`.
 
         Makes the assumption that the metric functions gives higher values
         for higher network performances.
@@ -63,9 +63,9 @@ class LearningSimple(Learning):
         self._set_name("le_metric")
 
 
-    def learn(self, network, data_collection, filter, name_metric_function, metric_value_min, nb_iterations_max, interval_check=100):
+    def learn(self, network, data_set, name_metric_function, metric_value_min, nb_iterations_max, interval_check=100):
         """
-        Apply the learning process on a `DataCollection`, until the metric
+        Apply the learning process on a `DataSet`, until the metric
         value computed using metric_function *equals or is greater than*
         metric_value_min.
 
@@ -88,9 +88,9 @@ class LearningSimple(Learning):
         nb_iterations_current = 0
         metric_value_computed = metric_value_min - 1
         while nb_iterations_current < nb_iterations_max and metric_value_computed < metric_value_min:
-            network.learn_iteration(data_collection, interval_check)
-            data_classification = network.classify_data_collection(data_collection, filter)
-            metric_value_computed = metric_function.compute_metric(data_collection, data_classification)
+            network.learn_iteration(data_set, interval_check)
+            data_classification = network.classify_data_set(data_set)
+            metric_value_computed = metric_function.compute_metric(data_set, data_classification)
             nb_iterations_current += interval_check
             
         return nb_iterations_current

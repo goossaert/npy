@@ -61,7 +61,7 @@ class DataInstance:
 
 
 
-class DataCollection:
+class DataSet:
     """
     Organizes instances into a collection, so that they can be treated
     all together.
@@ -86,18 +86,18 @@ class DataCollection:
 
     def add_instance(self, instance):
         """
-        Add a data instance into the data collection.
+        Add a data instance into the data set.
 
         :Parameters:
             instance : `Instance`
-                Instance to add to the data collection.
+                Instance to add to the data set.
 
         :Raises NpyIndexError:
-            If the instance index already exists in the `DataCollection`.
+            If the instance index already exists in the `DataSet`.
         """
 
         if instance.get_index_number() in self.__instances:
-            raise NpyIndexError, 'Index already exists in the DataCollection'
+            raise NpyIndexError, 'Index already exists in the DataSet'
 
         self.__instances[instance.get_index_number()] = instance
 
@@ -113,7 +113,7 @@ class DataCollection:
         :Returns:
             The instance of which the id number has been passed.
             Returns None if no `Instance` has the given index_number in
-            the `DataCollection`.
+            the `DataSet`.
         """
 
         if not index_number in self.__instances:
@@ -150,9 +150,9 @@ class DataCollection:
         
 
 
-class DataCollectionRAW(DataCollection):
+class DataSetMixed(DataSet):
     """
-    Data collection RAW, to hold un-numerized and un-normalized data.
+    Data collection mixed, to hold un-numerized and un-normalized data.
     """
     
     def __init__(self):
@@ -160,13 +160,13 @@ class DataCollectionRAW(DataCollection):
         Initializer
         """
 
-        DataCollection.__init__(self);
+        DataSet.__init__(self);
 
 
 
-class DataCollectionPCD(DataCollection):
+class DataSetNumeric(DataSet):
     """
-    Data collection PROCESSED, to hold numerized and normalized data.
+    Data collection numeric, to hold numerized and normalized data.
     """
     
     def __init__(self):
@@ -174,11 +174,11 @@ class DataCollectionPCD(DataCollection):
         Initializer.
         """
 
-        DataCollection.__init__(self);
+        DataSet.__init__(self);
 
 
 
-class DataClassified:
+class DataLabel:
     """
     This class contains the id of an instance in a data set, along with
     the label given by a network. That way, instance and classification
@@ -186,7 +186,7 @@ class DataClassified:
     made.
     """
 
-    def __init__(self, index_number, label_number, label_string):
+    def __init__(self, index_number, label_number):
         """
         Initializer
         
@@ -195,12 +195,9 @@ class DataClassified:
                 Id number for the classified instance.
             label_number : integer 
                 Numeric value of the label given to the instance.
-            label_string : integer 
-                String value of the label given to the instance.
         """
         self.__index_number = index_number
         self.__label_number = label_number
-        self.__label_string = label_string
 
 
     def get_index_number(self):
@@ -211,14 +208,10 @@ class DataClassified:
         return self.__label_number
 
 
-    def get_label_string(self):
-        return self.__label_string
-
-
 
 class DataClassification:
     """
-    Organizes classified data into a classification, so that
+    Organizes `DataLabel` into a classification, so that
     they can be treated all together.
     """
 
@@ -227,28 +220,28 @@ class DataClassification:
         Initializer
         """
 
-        self.__classified_instances = {}
+        self.__data_labels = {}
 
 
-    def add_data_classified(self, data_classified):
+    def add_data_label(self, data_label):
         """
         Add a classified data instance into the data classification.
 
         :Parameters:
-            data_classified : DataClassified
+            data_label : `DataLabel`
                 Classified data to add to the data classification.
 
         :Raises NpyIndexError:
             If the instance index already exists in the `DataClassification`.
         """
 
-        if data_classified.get_index_number() in self.__classified_instances:
+        if data_label.get_index_number() in self.__data_labels:
             raise NpyIndexError, 'Index already exists in the DataClassification'
 
-        self.__classified_instances[data_classified.get_index_number()] = data_classified
+        self.__data_labels[data_label.get_index_number()] = data_label
 
 
-    def get_classified_instance_by_id(self, index_number):
+    def get_data_label_by_id(self, index_number):
         """
         Get a classified data from the collection from its index_number.
 
@@ -258,17 +251,17 @@ class DataClassification:
 
         :Returns:
             The classified data of which the id number has been passed.
-            Returns None if no `DataClassified` has the given index_number in
+            Returns None if no `DataLabel` has the given index_number in
             the `DataClassification`.
         """
         
-        if not index_number in self.__classified_instances:
+        if not index_number in self.__data_labels:
             return None
 
-        return self.__classified_instances[index_number]
+        return self.__data_labels[index_number]
 
 
-    def get_classified_instances(self):
+    def get_data_labels(self):
         """
         Get a sequence of the classified data contained in this classification.
 
@@ -278,7 +271,7 @@ class DataClassification:
         """
 
         data = []
-        for k, v in self.__classified_instances.items():
+        for k, v in self.__data_labels.items():
             data.append(v)
 
         return data

@@ -23,7 +23,7 @@ __docformat__ = "restructuredtext en"
 
 from factory import FactoryMixin
 from factory import Factory
-from data import DataCollection
+from data import DataSet
 from data import DataClassification
 
 
@@ -40,7 +40,7 @@ class Metric(FactoryMixin):
         FactoryMixin.__init__(self)
 
     
-    def compute_metric(self, data_collection, data_classification):
+    def compute_metric(self, data_set, data_classification):
         """
         Compute the metric by comparing the expected and computed labels.
         """ 
@@ -65,20 +65,20 @@ class MetricAccuracy(Metric):
         self._set_name("me_accuracy")
          
 
-    def compute_metric(self, data_collection, data_classification):
+    def compute_metric(self, data_set, data_classification):
         """
         Compute the accuracy.
         """ 
 
         nb_correctly_classified = 0
 
-        instances = data_collection.get_instances() 
+        instances = data_set.get_instances() 
         if len(instances) == 0:
             return 0
 
         for instance_original in instances:
             label_original = instance_original.get_label_number()
-            instance_classified = data_classification.get_classified_instance_by_id(instance_original.get_index_number())
+            instance_classified = data_classification.get_data_label_by_id(instance_original.get_index_number())
             label_classified = instance_classified.get_label_number()
             if label_classified == label_original:
                 nb_correctly_classified += 1
