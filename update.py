@@ -31,6 +31,8 @@ class Update(FactoryMixin):
     Abstract class for the gradient descent updating process
     """
 
+    prefix = 'up_'
+
     def __init__(self):
         """
         Initializer

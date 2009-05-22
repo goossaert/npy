@@ -423,16 +423,16 @@ class Network:
         nb_previous_nodes = nb_previous_nodes + 1
 
         # Retreive transfert function instances
-        Factory.check_prefix(name_activation_function, 'ac_')
+        Factory.check_prefix(name_activation_function, Activation.prefix)
         activation_function = Factory.build_instance_by_name(name_activation_function)
 
-        Factory.check_prefix(name_update_function, 'up_')
+        Factory.check_prefix(name_update_function, Update.prefix)
         update_function = Factory.build_instance_by_name(name_update_function)
 
         if name_error_function == None:
             error_function = None
         else:
-            Factory.check_prefix(name_error_function, 'er_')
+            Factory.check_prefix(name_error_function, Error.prefix)
             error_function = Factory.build_instance_by_name(name_error_function)
 
         # Create the unit and add it to the network
@@ -503,12 +503,12 @@ class Network:
         return data_classification
         
 
-    def learn_iteration(self, data_set, nb_iteration):
+    def learn_cycles(self, data_set, nb_cycles):
         """
         Makes the network learn the instances of the given `DataSet`.
         """
 
-        for i in range(nb_iteration):
+        for i in range(nb_cycles):
             for instance in data_set.get_instances():
                 self.learn_instance(instance)
 

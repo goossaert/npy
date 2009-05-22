@@ -32,6 +32,8 @@ class Error(FactoryMixin):
     Abstract class for the error computation in the gradient descent process.
     """
 
+    prefix = 'er_'
+
     def __init__(self):
         """
         Initializer.

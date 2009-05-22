@@ -35,7 +35,8 @@ class Activation(FactoryMixin):
     """
     Activation function class.
     """
-    
+
+    prefix = 'ac_'
 
     def __init__(self):
         """

@@ -241,24 +241,24 @@ class DataClassification:
         self.__data_labels[data_label.get_index_number()] = data_label
 
 
-    def get_data_label_by_id(self, index_number):
+    def get_data_label_by_id(self, index_label):
         """
         Get a classified data from the collection from its index_number.
 
         :Parameters:
-            index_number : integer
-               Id number of the classified data to be retrieved.
+            index_label : integer
+               Index number of the `DataLabel` to be retrieved.
 
         :Returns:
             The classified data of which the id number has been passed.
-            Returns None if no `DataLabel` has the given index_number in
+            Returns None if no `DataLabel` has the given index_label in
             the `DataClassification`.
         """
         
-        if not index_number in self.__data_labels:
+        if not index_label in self.__data_labels:
             return None
 
-        return self.__data_labels[index_number]
+        return self.__data_labels[index_label]
 
 
     def get_data_labels(self):

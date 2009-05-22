@@ -30,6 +30,8 @@ class Label(FactoryMixin):
     This class is used to convert a label value, either a integer of a float,
     into the output vector a network is supposed to produce, and conversely.
     """
+    
+    prefix = 'la_'
 
     def __init__(self):
         """

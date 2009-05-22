@@ -32,6 +32,7 @@ class Metric(FactoryMixin):
     Metric function class.
     """
     
+    prefix = 'me_'
 
     def __init__(self):
         """
