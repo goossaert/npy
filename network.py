@@ -27,11 +27,13 @@ import random
 
 from npy.data import *
 from npy.factory import Factory
+from npy.activation import Activation
+from npy.update import Update
 from npy.error import ErrorLinear
 from npy.error import ErrorOutputDifference
 from npy.exception import *
-
 from npy.label import *
+
 
 class Node:
     """
@@ -110,14 +112,14 @@ class Unit:
             `Error` instance used to compute the error of the unit.
     """
 
-    def __init__(self, nb_node, previous_nb_node, activation_function, update_function, error_function):
+    def __init__(self, nb_nodes, previous_nb_nodes, activation_function, update_function, error_function):
         """
         Initializer.
 
         :Parameters:
-            nb_node : integer
+            nb_nodes : integer
                 Number of nodes required in the unit. 
-            previous_nb_node : integer
+            previous_nb_nodes : integer
                 Number of nodes in the previous unit.
             activation_function : `Activation`
                 `Activation` instance used to compute the activation function
@@ -133,8 +135,8 @@ class Unit:
         self.__update_function = update_function 
         self.__error_function = error_function
         
-        for i in range(nb_node):
-            node = Node(previous_nb_node)
+        for i in range(nb_nodes):
+            node = Node(previous_nb_nodes)
             self.__nodes.append(node)
 
 
@@ -280,7 +282,7 @@ class Unit:
         :Parameters:
             index : integer
                 Index of the unit in the network.
-            unit : Unit
+            unit : `Unit`
                 Network unit to which the update has to be applied.
             outputs : sequence of sequences
                 The outputs of each unit.
@@ -299,10 +301,32 @@ class Unit:
         return self.__update_function.compute_update(index, unit, outputs, error_network, update_network, data, out_data)
    
 
+class UnitInput(Unit):
+    """
+    Neural network input unit class. Only holds the number of nodes
+    in the input unit.
+
+    :IVariables:
+        __nb_nodes : integer 
+            Number of nodes required in the unit. 
+    """
+
+    def __init__(self, nb_nodes):
+        """
+        Initializer.
+
+        :Parameters:
+            nb_node : integer
+                Number of nodes required in the unit. 
+        """
+        Unit.__init__(self, nb_nodes, 0, None, None, None)
+        self.__nb_nodes = nb_nodes
 
 
-from npy.activation import Activation
-from npy.update import Update
+    def get_nb_nodes(self):
+        return self.__nb_nodes
+
+
 
 
 class Network:
@@ -310,10 +334,10 @@ class Network:
     Neural network class.
 
     :IVariables:
+        __unit_input : `UnitInput`
+            Input unit of the network
         __units : sequence of `Unit`
             Units of the network.
-        __nb_nodes_input : integer
-            Number of nodes in the input unit.
         __learning_rate : float
             Learning rate of the gradient descent process. 
         __label_function : `Label`
@@ -328,9 +352,9 @@ class Network:
             learning_rate : float
                 Learning rate of the network.
         """
+        self.__unit_input = None
         self.__units = []
         self.__learning_rate = learning_rate
-        self.__nb_nodes_input = None
         self.__label_function = None
 
 
@@ -339,13 +363,15 @@ class Network:
         Delete the internal structure of the network, making it ready
         to receive a new one.
         """
+        self.__unit_input = None
         self.__units = []
-        self.__nb_nodes_input = None
         self.__learning_rate = None
 
 
     def get_units(self):
-        return self.__units[:]
+        units = [self.__unit_input]
+        units.extend(self.__units[:])
+        return units
 
     
     def get_learning_rate(self):
@@ -356,16 +382,12 @@ class Network:
         self.__learning_rate = learning_rate
 
 
-    def get_nb_nodes_input(self):
-        return self.__nb_nodes_input
-
-
     def set_label_function(self, name_label_function):
         """
         :Raises NpyTransferFunctionError:
             If name_label_function does not correspond to a label function.
         """
-        Factory.check_prefix(name_label_function, 'la_')
+        Factory.check_prefix(name_label_function, Label.prefix)
         self.__label_function = Factory.build_instance_by_name(name_label_function)
 
 
@@ -388,7 +410,7 @@ class Network:
                 Name of the `Update` to use to compute the updates to
                 the weights.
             name_error_function : string
-                Name of the `Error` to use to compute the error of the Unit.
+                Name of the `Error` to use to compute the error of the `Unit`.
                 If equal to None, then the error function is set
                 automatically, depending on the unit position in the network.
 
@@ -398,46 +420,51 @@ class Network:
 
         :Raises NpyTransferFunctionError:
             If the function names do not correspond to valid functions.
+
+        :Raises NpyUnitError:
+            If an error related to the unit topology is encountered.
         """
-        # A non-negative number of nodes is required, and for the non-input
-        # units, the activation and update functions must be defines.
+        # A positive number of nodes is required
         if nb_nodes <= 0:
             raise NpyUnitError, 'Number of nodes must be strictly positive.'
 
-        if self.__nb_nodes_input != None \
+        # And for the non-input units, the activation and update functions
+        # must be defined.
+        if self.__unit_input != None \
           and (name_activation_function == None or name_update_function == None):
             raise NpyUnitError, 'Activation and update functions must be specified.'
 
         # Handle the input unit
-        if self.__nb_nodes_input == None:
-            self.__nb_nodes_input = nb_nodes
-            return None
-
-        # Handle the other units
-        if len(self.__units) == 0:
-            nb_previous_nodes = self.__nb_nodes_input
+        if self.__unit_input == None:
+            unit = UnitInput(nb_nodes)
+            self.__unit_input = unit
         else:
-            nb_previous_nodes = self.__units[-1].get_nb_nodes()
+            # Handle the other units
+            if len(self.__units) == 0:
+                unit_previous = self.__unit_input
+            else:
+                unit_previous = self.__units[-1]
 
-        # Add 1 in order to implement the bias
-        nb_previous_nodes = nb_previous_nodes + 1
+            # Add 1 in order to implement the bias
+            nb_previous_nodes = unit_previous.get_nb_nodes() + 1
 
-        # Retreive transfert function instances
-        Factory.check_prefix(name_activation_function, Activation.prefix)
-        activation_function = Factory.build_instance_by_name(name_activation_function)
+            # Retreive transfert function instances
+            Factory.check_prefix(name_activation_function, Activation.prefix)
+            activation_function = Factory.build_instance_by_name(name_activation_function)
 
-        Factory.check_prefix(name_update_function, Update.prefix)
-        update_function = Factory.build_instance_by_name(name_update_function)
+            Factory.check_prefix(name_update_function, Update.prefix)
+            update_function = Factory.build_instance_by_name(name_update_function)
 
-        if name_error_function == None:
-            error_function = None
-        else:
-            Factory.check_prefix(name_error_function, Error.prefix)
-            error_function = Factory.build_instance_by_name(name_error_function)
+            if name_error_function == None:
+                error_function = None
+            else:
+                Factory.check_prefix(name_error_function, Error.prefix)
+                error_function = Factory.build_instance_by_name(name_error_function)
 
-        # Create the unit and add it to the network
-        unit = Unit(nb_nodes, nb_previous_nodes, activation_function, update_function, error_function)
-        self.__units.append(unit)
+            # Create the unit and add it to the network
+            unit = Unit(nb_nodes, nb_previous_nodes, activation_function, update_function, error_function)
+            self.__units.append(unit)
+
         return unit
 
 
@@ -624,11 +651,13 @@ class Network:
             struct : dictionary
                 Structure of the current neural network.
         """
-        # General parameters and input unit
+        # General parameters
         struct = {}
         struct["learning_rate"] = self.__learning_rate
         struct["nb_units"] = len(self.__units) + 1
-        struct["unit1_nbnodes"] = self.__nb_nodes_input
+
+        # Input unit
+        struct["unit1_nbnodes"] = self.__unit_input.get_nb_nodes()
 
         # For each hidden unit and the output unit
         for index_unit, unit in zip(range(2,len(self.__units)+2), self.__units):
@@ -667,16 +696,21 @@ class Network:
                     * learning_rate = the value of the learning rate
                     * nb_units = number of internal units
                     * unit1_nbnodes = number of nodes in the input unit
-                And for each of the non-input units:
+                And for the hidden and output units:
                     * unit#_nbnodes = number of nodes in the #-th unit
                     * unit#_activation_function = activation_function name in the #-th unit
                     * unit#_update_function = update_function name in the #-th unit
                     * unit#_error_function = error_function name in the #-th unit
         """
         self.reset()
-        self.__learning_rate = float(struct["learning_rate"])
-        self.__nb_nodes_input = int(struct["unit1_nbnodes"])
 
+        # General parameters
+        self.__learning_rate = float(struct["learning_rate"])
+
+        # Input unit
+        self.add_unit(int(struct["unit1_nbnodes"]))
+
+        # For each hidden unit and the output unit
         for index_unit in range(2, int(struct["nb_units"]) + 1):
             name_unit = "unit" + str(index_unit)
             name_activation_function = struct[name_unit + "_activation_function"]
