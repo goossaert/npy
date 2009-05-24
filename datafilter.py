@@ -54,10 +54,10 @@ class Numerizer:
         self.__attributes = {}
         self.__label = {}
 
-        instances = ds_source.get_instances()
-        for instance in instances:
+        data_instances = ds_source.get_data_instances()
+        for data_instance in data_instances:
             # Process the attribute values
-            for index, value in enumerate(instance.get_attributes()):
+            for index, value in enumerate(data_instance.get_attributes()):
                 try:
                     number = float(value)
                 except ValueError:
@@ -66,7 +66,7 @@ class Numerizer:
                     self.__add_value_for_attribute(value, index) 
 
             # Process the label value
-            label = instance.get_label_number()
+            label = data_instance.get_label_number()
             try:
                 number = float(label)
             except ValueError:
@@ -81,7 +81,7 @@ class Numerizer:
         
         :Parameters:
             index_attribute : integer 
-                Id of the attribute in the instance sequence
+                Id of the attribute in the `DataInstance` sequence
             value_attribute : string 
                 Value of the attribute to store.
 
@@ -106,7 +106,7 @@ class Numerizer:
 
         :Parameters:
             index_attribute : integer 
-                Id of the attribute in the instance sequence
+                Id of the attribute in the `DataInstance` sequence
             value_attribute : string 
                 Value of the attribute to convert to a number.
 
@@ -199,13 +199,13 @@ class Numerizer:
         ds_dest = DataSetNumeric()
         ds_dest.set_name_attribute(ds_source.get_name_attribute())
 
-        instances = ds_source.get_instances()
-        for instance_old in instances:
+        data_instances = ds_source.get_data_instances()
+        for data_instance_old in data_instances:
 
             attributes = []
 
             # Process the attribute values
-            for index, value in enumerate(instance_old.get_attributes()):
+            for index, value in enumerate(data_instance_old.get_attributes()):
                 try:
                     number = float(value)
                 except ValueError:
@@ -215,7 +215,7 @@ class Numerizer:
                 attributes.append(number)
 
             # Process the label value
-            label_old = instance_old.get_label_number()
+            label_old = data_instance_old.get_label_number()
             try:
                 label_new = float(label_old)
             except ValueError:
@@ -223,8 +223,7 @@ class Numerizer:
                 # it is added to the numerizer
                 label_new = self.label_string_to_number(label_old)
 
-            instance_new = DataInstance(instance_old.get_index_number(), attributes, label_new)
-            ds_dest.add_instance(instance_new)             
+            ds_dest.add_data_instance(data_instance_old.get_index_number(), attributes, label_new)
 
         return ds_dest 
 
@@ -272,10 +271,10 @@ class Normalizer:
         value_min = [ float( sys.maxint) for i in range(nb_attributes) ]
         value_max = [ float(-sys.maxint) for i in range(nb_attributes) ]
 
-        instances = ds_source.get_instances()
-        for instance in instances:
+        data_instances = ds_source.get_data_instances()
+        for data_instance in data_instances:
             # Process the attribute values
-            for index, value in enumerate(instance.get_attributes()):
+            for index, value in enumerate(data_instance.get_attributes()):
                 if value < value_min[index]:
                     value_min[index] = float(value)
 
@@ -313,24 +312,23 @@ class Normalizer:
 
         :Returns:
             `DataSetNumeric` : `DataSet` in which normalized
-            instances have to be places.
+            `DataInstance` have to be places.
         """
 
         ds_dest = DataSetNumeric()
         ds_dest.set_name_attribute(ds_source.get_name_attribute())
 
-        instances = ds_source.get_instances()
-        for instance_old in instances:
+        data_instances = ds_source.get_data_instances()
+        for data_instance_old in data_instances:
 
             attributes_new = []
 
             # Normalize each attribute
-            for index, value in enumerate(instance_old.get_attributes()):
+            for index, value in enumerate(data_instance_old.get_attributes()):
                 value_new = (value - self.__min[index]) * self.__max[index] * (self.__upper_bound - self.__lower_bound) + self.__lower_bound
                 attributes_new.append(value_new)
 
-            instance_new = DataInstance(instance_old.get_index_number(), attributes_new, instance_old.get_label_number())
-            ds_dest.add_instance(instance_new)             
+            ds_dest.add_data_instance(data_instance_old.get_index_number(), attributes_new, data_instance_old.get_label_number())
 
         return ds_dest
 

@@ -73,18 +73,18 @@ class MetricAccuracy(Metric):
 
         nb_correctly_classified = 0
 
-        instances = data_set.get_instances() 
-        if len(instances) == 0:
+        data_instances = data_set.get_data_instances() 
+        if len(data_instances) == 0:
             return 0
 
-        for instance_original in instances:
-            label_original = instance_original.get_label_number()
-            instance_classified = data_classification.get_data_label_by_id(instance_original.get_index_number())
-            label_classified = instance_classified.get_label_number()
+        for data_instance_original in data_instances:
+            label_original = data_instance_original.get_label_number()
+            data_instance_classified = data_classification.get_data_label_by_id(data_instance_original.get_index_number())
+            label_classified = data_instance_classified.get_label_number()
             if label_classified == label_original:
                 nb_correctly_classified += 1
 
-        return nb_correctly_classified / len(instances)
+        return nb_correctly_classified / len(data_instances)
 
 
     @staticmethod

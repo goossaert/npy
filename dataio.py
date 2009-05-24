@@ -206,5 +206,4 @@ class DataIO_CSV:
 
             label = row[index_label]
 
-            instance = DataInstance(index_instance, value_attribute, label)
-            data_set.add_instance(instance)
+            data_set.add_data_instance(index_instance, value_attribute, label)

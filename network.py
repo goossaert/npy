@@ -242,8 +242,8 @@ class Unit:
                 Errors of the next unit, sometimes necessary for the
                 computation.
             desired_output : sequence of floats
-                Output desired for the current instance. This is the
-                output at the end of the process.
+                Output desired for the current data_instance. This is
+                the output at the end of the process.
             outputs : sequence
                 All the output of the different layers. *At the
                 moment a layer receive this information, only the
@@ -468,12 +468,12 @@ class Network:
         return unit
 
 
-    def compute_output(self, instance):
+    def compute_output(self, data_instance):
         """
         Compute the output values of all the units for the network.
 
         :Parameters:
-            instance : `DataInstance`
+            data_instance : `DataInstance`
                 `DataInstance` used by the network to compute the outputs.
 
         :Returns:
@@ -481,7 +481,7 @@ class Network:
             `Unit` of the network.
         """
         
-        values = [list(instance.get_attributes())] 
+        values = [list(data_instance.get_attributes())] 
         for unit in self.__units:
             # Add the bias value to the input
             values[-1].append(1)
@@ -490,19 +490,19 @@ class Network:
         return values
 
     
-    def classify_instance(self, instance):
+    def classify_data_instance(self, data_instance):
         """
         Compute the output values for the network.
 
         :Parameters:
-            instance : `DataInstance`
+            data_instance : `DataInstance`
                 `DataInstance` used by the network to compute the outputs.
 
         :Returns:
             integer : the label associated with the classification produced
-            by the network for the given instance.
+            by the network for the given data_instance.
         """
-        values = self.compute_output(instance)
+        values = self.compute_output(data_instance)
         return self.vector_to_label(values[-1])
 
 
@@ -521,31 +521,30 @@ class Network:
 
         data_classification = DataClassification()
 
-        instances = data_set.get_instances()
-        for instance in instances:
-            label_number = self.classify_instance(instance)
-            data_label = DataLabel(instance.get_index_number(), label_number)
-            data_classification.add_data_label(data_label)
+        data_instances = data_set.get_data_instances()
+        for data_instance in data_instances:
+            label_number = self.classify_data_instance(data_instance)
+            data_classification.add_data_label(data_instance.get_index_number(), label_number)
 
         return data_classification
         
 
     def learn_cycles(self, data_set, nb_cycles):
         """
-        Makes the network learn the instances of the given `DataSet`.
+        Makes the network learn the data_instances of the given `DataSet`.
         """
 
         for i in range(nb_cycles):
-            for instance in data_set.get_instances():
-                self.learn_instance(instance)
+            for data_instance in data_set.get_data_instances():
+                self.learn_data_instance(data_instance)
 
 
-    def learn_instance(self, instance, data=None, out_data=None):
+    def learn_data_instance(self, data_instance, data=None, out_data=None):
         """
         Makes the network learn the given `DataInstance`.
 
         :Parameters:
-            instance : `DataInstance`
+            data_instance : `DataInstance`
                 `DataInstance` to be learned.
             data
                 Data input, to be filled by the user if necessary.
@@ -556,10 +555,10 @@ class Network:
 
         # Transform this method into a template mothod: it will increase the cohesion.
 
-        desired_output = self.label_to_vector(instance.get_label_number())
+        desired_output = self.label_to_vector(data_instance.get_label_number())
 
         # Compute the outputs from the whole network
-        outputs = self.compute_output(instance) 
+        outputs = self.compute_output(data_instance) 
 
         # The 'None'  error_network is just a dummy value
         error_network = [None]
