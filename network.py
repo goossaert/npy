@@ -58,8 +58,6 @@ class Node:
         for i in range(previous_nb_node):
             self.__weights.append(random.uniform(-1, 1)) 
 
-#        print 'weights', self.__weights
-
 
     def get_weights(self):
         return self.__weights
@@ -79,19 +77,18 @@ class Node:
 
     def compute_output(self, input, activation_function):
         """
-        Compute output value using the current Node
+        Compute output value using the current `Node`.
 
         :Parameters:
             input : sequence 
-                Data for the input unit of the network.
-            activation_function : Activation
-                Activation instance to be used to compute the output.
+                Data for the input unit of the `Network`.
+            activation_function : `Activation`
+                `Activation` instance to be used to compute the output.
 
         :Returns:
-            sequence: the output values of the network.
+            sequence: the output values of the `Network`.
         """
-                                                         
-        # check the number of inputs and raise exception if not equal
+
         return activation_function.compute_activation(input, self.__weights)
 
 
@@ -340,11 +337,13 @@ class Network:
             Units of the network.
         __learning_rate : float
             Learning rate of the gradient descent process. 
+        __use_bias : boolean
+            Toggle the use of a bias in the whole `Network`.
         __label_function : `Label`
             Label function used to label output vectors.
     """
 
-    def __init__(self, learning_rate=None):
+    def __init__(self, learning_rate=None, use_bias=True):
         """
         Initializer.
 
@@ -356,11 +355,12 @@ class Network:
         self.__units = []
         self.__learning_rate = learning_rate
         self.__label_function = None
+        self.__use_bias = use_bias
 
 
     def reset(self):
         """
-        Delete the internal structure of the network, making it ready
+        Delete the internal topology of the network, making it ready
         to receive a new one.
         """
         self.__unit_input = None
@@ -445,8 +445,9 @@ class Network:
             else:
                 unit_previous = self.__units[-1]
 
-            # Add 1 in order to implement the bias
-            nb_previous_nodes = unit_previous.get_nb_nodes() + 1
+            if self.__use_bias == True:
+                # Add 1 in order to implement the bias
+                nb_previous_nodes = unit_previous.get_nb_nodes() + 1
 
             # Retreive transfert function instances
             Factory.check_prefix(name_activation_function, Activation.prefix)
@@ -468,7 +469,7 @@ class Network:
         return unit
 
 
-    def compute_output(self, data_instance):
+    def __compute_output(self, data_instance):
         """
         Compute the output values of all the units for the network.
 
@@ -479,15 +480,34 @@ class Network:
         :Returns:
             sequence of sequences of floats : the output data of all the
             `Unit` of the network.
-        """
-        
-        values = [list(data_instance.get_attributes())] 
-        for unit in self.__units:
-            # Add the bias value to the input
-            values[-1].append(1)
-            values.append(unit.compute_output(values[-1])) 
 
-        return values
+        :Raises NpyValueError:
+            If the size of the sequence given in input is not the one
+            expected by the `Network`.
+
+        :Raises NpyIncompleteError:
+            If the `Network` has no unit.
+        """
+                                                         
+        if len(data_instance.get_attributes()) != self.__unit_input.get_nb_nodes():
+            raise NpyValueError, 'The number of inputs given to the network is invalid.'
+
+        if self.__unit_input == None:
+            raise NpyIncompleteError, 'The network has no unit, and thus cannot clasify anything.'
+
+        if len(self.__units) > 0:
+            vector_output = [list(data_instance.get_attributes())] 
+            for unit in self.__units:
+                if self.__use_bias == True:
+                    # Add the bias value to the input
+                    vector_output[-1].append(1)
+                vector_output.append(unit.compute_output(vector_output[-1])) 
+        else:
+            # If the network has only a input unit, then the output vector
+            # is simply the input vector!
+            vector_output = list(data_instance.get_attributes())
+
+        return vector_output
 
     
     def classify_data_instance(self, data_instance):
@@ -501,8 +521,21 @@ class Network:
         :Returns:
             integer : the label associated with the classification produced
             by the network for the given data_instance.
+
+        :Raises NpyValueError:
+            If the number of attributes of `DataInstance` is invalid.
+
+        :Raises NpyIncompleteError:
+            If the `Network` has no unit.
         """
-        values = self.compute_output(data_instance)
+
+        try:
+            values = self.__compute_output(data_instance)
+        except NpyValueError, e:
+            raise NpyValueError, e.msg
+        except NpyIncompleteError, e:
+            raise NpyIncompleteError, e.msg
+
         return self.vector_to_label(values[-1])
 
 
@@ -517,14 +550,26 @@ class Network:
         :Returns:
             `DataClassification` : Classification of the `DataSet`
             given in parameter.
+
+        :Raises NpyValueError:
+            If the number of attributes of one the `DataInstance` in the
+            `DataSet` is invalid.
+
+        :Raises NpyIncompleteError:
+            If the `Network` has no unit.
         """
 
         data_classification = DataClassification()
 
-        data_instances = data_set.get_data_instances()
-        for data_instance in data_instances:
-            label_number = self.classify_data_instance(data_instance)
-            data_classification.add_data_label(data_instance.get_index_number(), label_number)
+        try:
+            data_instances = data_set.get_data_instances()
+            for data_instance in data_instances:
+                label_number = self.classify_data_instance(data_instance)
+                data_classification.add_data_label(data_instance.get_index_number(), label_number)
+        except NpyValueError, e:
+            raise NpyValueError, e.msg
+        except NpyIncompleteError, e:
+            raise NpyIncompleteError, e.msg
 
         return data_classification
         
@@ -532,11 +577,24 @@ class Network:
     def learn_cycles(self, data_set, nb_cycles):
         """
         Makes the network learn the data_instances of the given `DataSet`.
+
+        :Raises NpyValueError:
+            If the number of attributes of one the `DataInstance` in the
+            `DataSet` is invalid.
+
+        :Raises NpyIncompleteError:
+            If the network does not have a learning rate, or does not
+            have units.
         """
 
-        for i in range(nb_cycles):
-            for data_instance in data_set.get_data_instances():
-                self.learn_data_instance(data_instance)
+        try:
+            for i in range(nb_cycles):
+                for data_instance in data_set.get_data_instances():
+                    self.learn_data_instance(data_instance)
+        except NpyValueError, e:
+            raise NpyValueError, e.msg
+        except NpyIncompleteError, e:
+            raise NpyIncompleteError, e.msg
 
 
     def learn_data_instance(self, data_instance, data=None, out_data=None):
@@ -551,14 +609,30 @@ class Network:
             out_data
                 Data output, to be filled by the user if necessary,
                 and can be retrieved when the function ends.
-        """
 
-        # Transform this method into a template mothod: it will increase the cohesion.
+        :Raises NpyValueError:
+            If the size of the sequence given in input is not the one
+            expected by the `Network`.
+
+        :Raises NpyIncompleteError:
+            If the network does not have a learning rate, or does not
+            have units.
+        """
+        # TODO Transform this method into a template mothod: it will increase the cohesion.
+                                                         
+        if len(data_instance.get_attributes()) != self.__unit_input.get_nb_nodes():
+            raise NpyValueError, 'The number of inputs given to the network is invalid.'
+
+        if self.__learning_rate == None:
+            raise NpyIncompleteError, 'The network has no learning rate, and thus cannot learn anything.'
+
+        if self.__unit_input == None:
+            raise NpyIncompleteError, 'The network has no unit, and thus cannot clasify anything.'
 
         desired_output = self.label_to_vector(data_instance.get_label_number())
 
         # Compute the outputs from the whole network
-        outputs = self.compute_output(data_instance) 
+        outputs = self.__compute_output(data_instance) 
 
         # The 'None'  error_network is just a dummy value
         error_network = [None]
@@ -575,10 +649,11 @@ class Network:
         # The right order is the converse
         error_network.reverse()
 
-        # The adding of the bias weights created useless error values
-        # that have to be deleted 
-        for index_unit in range(len(error_network) - 1):
-            del error_network[index_unit][-1] 
+        if self.__use_bias == True:
+            # The use of the bias created useless error values
+            # that have to be deleted 
+            for index_unit in range(len(error_network) - 1):
+                del error_network[index_unit][-1] 
 
         # Compute the weight_update values
         update_network = []
@@ -613,6 +688,7 @@ class Network:
         :Raises NpyTransferFunctionError:
             If no label function is defined for the network.
         """
+
         if self.__label_function == None:
             raise NpyTransferFunctionError, 'No label function is defined for the network.'
 
@@ -636,42 +712,44 @@ class Network:
         :Raises NpyTransferFunctionError:
             If no label function is defined for the network.
         """
+
         if self.__label_function == None:
             raise NpyTransferFunctionError, 'No label function is defined for the network.'
         return self.__label_function.vector_to_label(vector)
 
 
-    def get_structure(self):
+    def get_topology(self):
         """
         Build a dictionary containing all the information related to
-        the structure of the current neural network.
+        the topology of the current neural network.
 
         :Returns:
-            struct : dictionary
+            topology : dictionary
                 Structure of the current neural network.
         """
+
         # General parameters
-        struct = {}
-        struct["learning_rate"] = self.__learning_rate
-        struct["nb_units"] = len(self.__units) + 1
+        topology = {}
+        topology["learning_rate"] = self.__learning_rate
+        topology["nb_units"] = len(self.__units) + 1
 
         # Input unit
-        struct["unit1_nbnodes"] = self.__unit_input.get_nb_nodes()
+        topology["unit1_nbnodes"] = self.__unit_input.get_nb_nodes()
 
         # For each hidden unit and the output unit
         for index_unit, unit in zip(range(2,len(self.__units)+2), self.__units):
             
             # Parameters for the current unit
             name_unit = "unit" + str(index_unit)
-            struct[name_unit + "_nbnodes"] = unit.get_nb_nodes()
+            topology[name_unit + "_nbnodes"] = unit.get_nb_nodes()
 
             # Parameters for the activation function
             activation_function = unit.get_activation_function()
-            struct[name_unit + "_activation_function"] = activation_function.get_name() 
+            topology[name_unit + "_activation_function"] = activation_function.get_name() 
 
             # Parameters for the update function
             update_function = unit.get_update_function()
-            struct[name_unit + "_update_function"] = update_function.get_name() 
+            topology[name_unit + "_update_function"] = update_function.get_name() 
 
             # Parameters for the error function
             error_function = unit.get_error_function()
@@ -679,18 +757,18 @@ class Network:
                 name_error_function = 'None'
             else:
                 name_error_function = error_function.get_name()
-            struct[name_unit + "_error_function"] = name_error_function
+            topology[name_unit + "_error_function"] = name_error_function
 
-        return struct 
+        return topology 
 
 
-    def set_structure(self, struct):
+    def set_topology(self, topology):
         """
-        Set the internal structure of the network to the given information
+        Set the internal topology of the network to the given information
         dictionary.
 
         :Parameters:
-            struct : dictionary
+            topology : dictionary
                 This dictionary must contain:
                     * learning_rate = the value of the learning rate
                     * nb_units = number of internal units
@@ -701,22 +779,25 @@ class Network:
                     * unit#_update_function = update_function name in the #-th unit
                     * unit#_error_function = error_function name in the #-th unit
         """
+        # TODO check the exception on the dictionary, and raise an exception
+        # if a field is missing and the network cannot be loaded properly.
+
         self.reset()
 
         # General parameters
-        self.__learning_rate = float(struct["learning_rate"])
+        self.__learning_rate = float(topology["learning_rate"])
 
         # Input unit
-        self.add_unit(int(struct["unit1_nbnodes"]))
+        self.add_unit(int(topology["unit1_nbnodes"]))
 
         # For each hidden unit and the output unit
-        for index_unit in range(2, int(struct["nb_units"]) + 1):
+        for index_unit in range(2, int(topology["nb_units"]) + 1):
             name_unit = "unit" + str(index_unit)
-            name_activation_function = struct[name_unit + "_activation_function"]
-            name_update_function = struct[name_unit + "_update_function"]
-            name_error_function = struct[name_unit + "_error_function"]
+            name_activation_function = topology[name_unit + "_activation_function"]
+            name_update_function = topology[name_unit + "_update_function"]
+            name_error_function = topology[name_unit + "_error_function"]
             if name_error_function == 'None': name_error_function = None
-            nb_nodes = int(struct[name_unit + "_nbnodes"])
+            nb_nodes = int(topology[name_unit + "_nbnodes"])
             self.add_unit(nb_nodes, name_activation_function, name_update_function, name_error_function) 
 
 
@@ -728,24 +809,24 @@ class Network:
             sequence : weights of the entire network
         """
 
-        weight_network = []
+        weights_network = []
         for unit in self.__units:
-            weight_unit = unit.get_weights()
-            weight_network.append(weight_unit)
-        return weight_network
+            weights_unit = unit.get_weights()
+            weights_network.append(weights_unit)
+        return weights_network
 
 
-    def set_weights(self,weight_network):
+    def set_weights(self, weights_network):
         """
         Set the weights of the entire network from a sequence.
 
         :Parameters:
-            weight_network : sequence
-                weights of the entire network
+            weights_network : sequence
+                Weights of the entire network
         """
 
-        for weight_unit, unit in zip(weight_network, self.__units):
-            unit.set_weights(weight_unit)
+        for weights_unit, unit in zip(weights_network, self.__units):
+            unit.set_weights(weights_unit)
 
 
 if __name__ == "__main__":

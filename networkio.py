@@ -120,52 +120,52 @@ class NetworkIO_CSV:
         return table
 
 
-    def read_structure(self, network):
+    def read_topology(self, network):
         """
-        Read a structure and load it in a given neural network
+        Read a topology and load it in a given neural network
 
         :Parameters:
             network : Network
-                Network where to put the structure.
+                Network where to put the topology.
 
         :Raises NpyStreamError:
             If a problem occurs while reading the file.
         """
 
-        table = self.read_table('_str.csv')
+        table = self.read_table('_topology.csv')
    
         # build the information dictionary as we know it
-        struct = {}
+        topology = {}
         for field, value in zip(table[0], table[1]):
-            struct[field] = value 
+            topology[field] = value 
 
-        network.set_structure(struct)
+        network.set_topology(topology)
 
 
-    def write_structure(self, network):
+    def write_topology(self, network):
         """
-        Write the structure of a neural network to the stream
+        Write the topology of a neural network to the stream
 
         :Parameters:
             network : Network
-                Network of which the structure has to be written.
+                Network of which the topology has to be written.
 
         :Raises NpyStreamError:
             If a problem occurs while reading the file.
         """
 
-        # Retrieve the network structure
-        struct = network.get_structure()
+        # Retrieve the network topology
+        topology = network.get_topology()
 
         # Build the data table with the fieldnames in the first row 
         fields = []
         values = []
-        for k,v in struct.items():
+        for k,v in topology.items():
             fields.append(k)
             values.append(v)
         table = [ fields, values ]
 
-        self.write_table('_str.csv', table) 
+        self.write_table('_topology.csv', table) 
 
 
     def read_weights(self,network):
@@ -182,7 +182,7 @@ class NetworkIO_CSV:
         # Build the sequence that will be filled with weights
         weight_network = network.get_weights()
        
-        table = self.read_table('_wgt.csv')
+        table = self.read_table('_weights.csv')
         row_fields = table[0]
 
         # Build the fieldname reference
@@ -227,4 +227,4 @@ class NetworkIO_CSV:
                 for index_weight, weight in zip(range(1,len(weight_node)+1), weight_node):
                     table.append([index_unit, index_node, index_weight, weight])
 
-        self.write_table('_wgt.csv', table) 
+        self.write_table('_weights.csv', table) 

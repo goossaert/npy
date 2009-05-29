@@ -75,3 +75,11 @@ class NpyUnitError(NpyException):
     Raised when a problem occurs during the creation of a `Unit`.
     """
     pass
+
+
+class NpyIncompleteError(NpyException):
+    """
+    Raised when a required action has not been done during a process,
+    leaving the program in an incomplete state.
+    """
+    pass
