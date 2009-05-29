@@ -40,7 +40,7 @@ class Train(FactoryMixin):
         FactoryMixin.__init__(self)
 
 
-    def train(self, network, data_set, name_metric_function, metric_value_min, nb_iterations_max, interval_check=100):
+    def train_network(self, network, data_set, name_metric_function, metric_value_min, nb_iterations_max, interval_check=100):
         """
         Apply a training process upon a `DataSet`.
 
@@ -65,7 +65,7 @@ class TrainSimple(Train):
         self._set_name("tr_metric")
 
 
-    def train(self, network, data_set, name_metric_function, metric_value_min, nb_iterations_max, interval_check=100):
+    def train_network(self, network, data_set, name_metric_function, metric_value_min, nb_iterations_max, interval_check=100):
         """
         Apply the training process on a `DataSet`, until the metric
         value computed using metric_function *equals or is greater than*
@@ -79,19 +79,28 @@ class TrainSimple(Train):
 
         :Raises NpyTransferFunctionError:
             If name_metric_function does not correspond to a metric function.
+
+        :Raises NpyDataTypeError:
+            If the given `DataSet` has not been numerized.
         """
         
         if interval_check < 1:
             raise NpyValueError, 'interval_check has to be greater or equal to 1'
 
-        Factory.check_prefix(name_metric_function, Metric.prefix)
-        metric_function = Factory.build_instance_by_name(name_metric_function)
+        try:
+            Factory.check_prefix(name_metric_function, Metric.prefix)
+            metric_function = Factory.build_instance_by_name(name_metric_function)
+        except NpyTransferFunctionError, e:
+            raise NpyTransferFunctionError, e.msg
 
         nb_iterations_current = 0
         metric_value_computed = metric_value_min - 1
         while nb_iterations_current < nb_iterations_max and metric_value_computed < metric_value_min:
-            network.learn_cycles(data_set, interval_check)
-            data_classification = network.classify_data_set(data_set)
+            try:
+                network.learn_cycles(data_set, interval_check)
+                data_classification = network.classify_data_set(data_set)
+            except NpyDataTypeError, e:
+                raise NpyDataTypeError, e.msg
             metric_value_computed = metric_function.compute_metric(data_set, data_classification)
             nb_iterations_current += interval_check
             

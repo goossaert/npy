@@ -73,6 +73,11 @@ class DataSet:
         __name_attribute : tuple
             Sequence of the names of the attributes. Stored as a tuple
             because the order does matter.
+        is_numerized : boolean
+            Store if the current `DataSet` has been numerized or not.
+            The default state is false, so that the user has to explicitely
+            set this parameter before using the `DataSet` into a `Network`.
+            *This variable is publicly accessible.*
     """
 
     def __init__(self):
@@ -82,6 +87,7 @@ class DataSet:
 
         self.__data_instances = {}
         self.__name_attribute = ()
+        self.is_numerized = False
 
 
     def add_data_instance_object(self, data_instance):
@@ -126,7 +132,7 @@ class DataSet:
 
     def get_data_instance_by_id(self, index_number):
         """
-        Get an data_instance from the collection from its index_number.
+        Get an data_instance from the `DataSet` from its index_number.
 
         :Parameters:
             index_number : integer
@@ -146,10 +152,11 @@ class DataSet:
 
     def get_data_instances(self):
         """
-        Get a sequence of the data_instances contained in this collection.
+        Get a sequence of the `DataInstance` contained in this `DataSet`.
 
         :Returns:
-            A sequence filled with the data_instances contained in this collection.
+            A sequence filled with the `DataInstance` contained in this
+            `DataSet`.
         """
 
         data = []
@@ -170,34 +177,6 @@ class DataSet:
     def get_nb_attributes(self):
         return len(self.__name_attribute)
         
-
-
-class DataSetMixed(DataSet):
-    """
-    Data collection mixed, to hold un-numerized and un-normalized data.
-    """
-    
-    def __init__(self):
-        """
-        Initializer
-        """
-
-        DataSet.__init__(self);
-
-
-
-class DataSetNumeric(DataSet):
-    """
-    Data collection numeric, to hold numerized and normalized data.
-    """
-    
-    def __init__(self):
-        """
-        Initializer.
-        """
-
-        DataSet.__init__(self);
-
 
 
 class DataLabel:
@@ -266,8 +245,8 @@ class DataClassification:
 
     def add_data_label(self, index_number, label_number):
         """
-        Add a data data_instance into the `DataSet`, by passing directly
-        the arguments of the initializer of DataInstance.
+        Add a data data_instance into the `DataClassification`, by passing
+        directly the arguments of the initializer of DataInstance.
         
         :Parameters:
             index_number : integer
@@ -281,7 +260,7 @@ class DataClassification:
 
     def get_data_label_by_id(self, index_label):
         """
-        Get a classified data from the collection from its index_number.
+        Get a classified data from the `DataSet` from its index_number.
 
         :Parameters:
             index_label : integer

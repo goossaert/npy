@@ -387,9 +387,11 @@ class Network:
         :Raises NpyTransferFunctionError:
             If name_label_function does not correspond to a label function.
         """
-        Factory.check_prefix(name_label_function, Label.prefix)
-        self.__label_function = Factory.build_instance_by_name(name_label_function)
-
+        try:
+            Factory.check_prefix(name_label_function, Label.prefix)
+            self.__label_function = Factory.build_instance_by_name(name_label_function)
+        except NpyTransferFunctionError, e:
+            raise NpyTransferFunctionError, e.msg
 
     def get_label_function(self):
         return self.__label_function
@@ -450,17 +452,20 @@ class Network:
                 nb_previous_nodes = unit_previous.get_nb_nodes() + 1
 
             # Retreive transfert function instances
-            Factory.check_prefix(name_activation_function, Activation.prefix)
-            activation_function = Factory.build_instance_by_name(name_activation_function)
+            try:
+                Factory.check_prefix(name_activation_function, Activation.prefix)
+                activation_function = Factory.build_instance_by_name(name_activation_function)
 
-            Factory.check_prefix(name_update_function, Update.prefix)
-            update_function = Factory.build_instance_by_name(name_update_function)
+                Factory.check_prefix(name_update_function, Update.prefix)
+                update_function = Factory.build_instance_by_name(name_update_function)
 
-            if name_error_function == None:
-                error_function = None
-            else:
-                Factory.check_prefix(name_error_function, Error.prefix)
-                error_function = Factory.build_instance_by_name(name_error_function)
+                if name_error_function == None:
+                    error_function = None
+                else:
+                    Factory.check_prefix(name_error_function, Error.prefix)
+                    error_function = Factory.build_instance_by_name(name_error_function)
+            except NpyTransferFunctionError, e:
+                raise NpyTransferFunctionError, e.msg
 
             # Create the unit and add it to the network
             unit = Unit(nb_nodes, nb_previous_nodes, activation_function, update_function, error_function)
@@ -557,7 +562,13 @@ class Network:
 
         :Raises NpyIncompleteError:
             If the `Network` has no unit.
+
+        :Raises NpyDataTypeError:
+            If the given `DataSet` has not been numerized.
         """
+
+        if data_set.is_numerized == False:
+            raise NpyDataTypeError, 'ds_source must be numerized first.'
 
         data_classification = DataClassification()
 
@@ -732,6 +743,7 @@ class Network:
         topology = {}
         topology["learning_rate"] = self.__learning_rate
         topology["nb_units"] = len(self.__units) + 1
+        topology["use_bias"] = self.__use_bias 
 
         # Input unit
         topology["unit1_nbnodes"] = self.__unit_input.get_nb_nodes()
@@ -786,6 +798,7 @@ class Network:
 
         # General parameters
         self.__learning_rate = float(topology["learning_rate"])
+        self.__use_bias = bool(topology["use_bias"])
 
         # Input unit
         self.add_unit(int(topology["unit1_nbnodes"]))

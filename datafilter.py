@@ -22,15 +22,13 @@ __docformat__ = "restructuredtext en"
 
 import sys
 
-from npy.data import DataSetMixed
-from npy.data import DataSetNumeric
+from npy.data import DataSet
 from npy.data import DataInstance
 
 class Numerizer:
     """
-    Transforms a `DataSetMixed` into a `DataSetNumeric`
-    by transforming all the ordinal and categorical attributes
-    into numerical interval attributes.
+    Transforms all the ordinal and categorical attributes
+    of a given `DataSet` into numerical interval attributes.
     
     :IVariables:
         __attributes : dictionary
@@ -47,7 +45,7 @@ class Numerizer:
         Builds a `Numerizer` based on the data provided in ds_source.
 
         :Parameters:
-            ds_source : `DataSetMixed`
+            ds_source : `DataSet`
                 Data to use in order to build the `Numerizer`.
         """
 
@@ -179,24 +177,22 @@ class Numerizer:
              
     def numerize(self, ds_source):
         """
-        Transforms a `DataSetMixed` into a `DataSetNumeric`
-        by transforming all the ordinal and categorical attributes
-        into numerical interval attributes.
+        Apply the numerizing operation to a given `DataSet`.
 
         :Parameters:
-            ds_source : `DataSetMixed`
-                Data collection to numerize.
+            ds_source : `DataSet`
+                Data set to numerize.
 
         :Returns:
-            `DataSetNumeric` : Numerized data set.
+            `DataSet` : Numerized data set.
 
         :Raises NpyDataTypeError:
-            If ds_source is not of DataSetMixed type.
+            If ds_source has already been numerized.
         """
-        if not isinstance(ds_source, DataSetMixed):
-            raise NpyDataTypeError, 'ds_source must be a DataSetMixed'
+        if ds_source.is_numerized == True:
+            raise NpyDataTypeError, 'ds_source has already been numerized.'
 
-        ds_dest = DataSetNumeric()
+        ds_dest = DataSet()
         ds_dest.set_name_attribute(ds_source.get_name_attribute())
 
         data_instances = ds_source.get_data_instances()
@@ -225,15 +221,15 @@ class Numerizer:
 
             ds_dest.add_data_instance(data_instance_old.get_index_number(), attributes, label_new)
 
+        ds_dest.is_numerized = True
         return ds_dest 
 
 
 
 class Normalizer:
     """
-    Transforms a `DataSetNumeric` into a `DataSetNumeric` by transforming
-    all the numerical values into values strictly contained into a given
-    interval.
+    Transforms all the numerical values of a given `Dataset` into values
+    strictly contained into a given interval.
 
     :IVariables:
         __lower_bound : float
@@ -253,14 +249,14 @@ class Normalizer:
         Builds a `Normalizer` based on the data provided in ds_source.
 
         :Parameters:
-            ds_source : `DataSetNumeric`
-                Data to use in order to build the normalizer.
+            ds_source : `DataSet`
+                `DataSet` used to build the normalizer.
 
         :Raises NpyDataTypeError:
-            If ds_source is not of DataSetNumeric type.
+            If the given `DataSet` has not been numerized.
         """
-        if not isinstance(ds_source, DataSetNumeric):
-            raise NpyDataTypeError, 'ds_source must be a DataSetNumeric'
+        if ds_source.is_numerized == False:
+            raise NpyDataTypeError, 'ds_source must be numerized first.'
 
         self.__lower_bound = float(lower_bound)
         self.__upper_bound = float(upper_bound)
@@ -303,19 +299,23 @@ class Normalizer:
              
     def normalize(self, ds_source):
         """
-        Transforms a `DataSetNumeric` into a `DataSetNumeric`
-        by normalizing the values of the attributes.
+        Apply the normalizing operation to a given `DataSet`.
 
         :Parameters:
-            ds_source : `DataSetNumeric` 
-                Data collection to normalize.
+            ds_source : `DataSet` 
+                Data set to normalize.
 
         :Returns:
-            `DataSetNumeric` : `DataSet` in which normalized
-            `DataInstance` have to be places.
+            `DataSet` : Normalized data set.
+
+        :Raises NpyDataTypeError:
+            If the given `DataSet` has not been numerized.
         """
 
-        ds_dest = DataSetNumeric()
+        if ds_source.is_numerized == False:
+            raise NpyDataTypeError, 'ds_source must be numerized first.'
+
+        ds_dest = DataSet()
         ds_dest.set_name_attribute(ds_source.get_name_attribute())
 
         data_instances = ds_source.get_data_instances()
@@ -330,6 +330,7 @@ class Normalizer:
 
             ds_dest.add_data_instance(data_instance_old.get_index_number(), attributes_new, data_instance_old.get_label_number())
 
+        ds_dest.is_numerized = True
         return ds_dest
 
 
@@ -373,11 +374,11 @@ class Filter:
         data set.
         
         :Parameters:
-            ds_source : `DataSetNumeric` 
+            ds_source : `DataSet` 
                 `DataSet` to filter.
 
         :Returns:
-            `DataSetNumeric` : data set filtered
+            `DataSet` : data set filtered
         """
 
         ds_numerized = self.__numerizer.numerize(ds_source)

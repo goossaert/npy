@@ -22,8 +22,9 @@ __docformat__ = "restructuredtext en"
 
 import csv
 import sys
+from npy.data import DataSet
 from npy.data import DataInstance
-from npy.data import DataSetMixed
+from npy.exception import *
 
 class DataIO_CSV:
     """
@@ -125,14 +126,14 @@ class DataIO_CSV:
     # TODO there is a read method, but not a write: code the write one!
     def read(self, data_set):
         """
-        Read a CSV file and fill the provided DataSetMixed with instances.
+        Read a CSV file and fill the provided DataSet with instances.
 
         :Parameters:
-            data_set : DataSetMixed
+            data_set : DataSet
                 Data Collection to be filled with the file content.
 
         :Raises NpyDataTypeError:
-            If ds_source is not of DataSetMixed type.
+            If data_set has already been normalized.
 
         :Raises NpyStreamError:
             If a problem occurs while reading the file.
@@ -141,8 +142,9 @@ class DataIO_CSV:
             If the label index is not found, making it impossible to create
             a valid DataSet.
         """
-        if not isinstance(data_set, DataSetMixed):
-            raise NpyDataTypeError, 'ds_source must be a DataSetMixed'
+
+        if data_set.is_numerized == True:
+            raise NpyDataTypeError, 'data_set has already been normalized, cannot add anything to it.'
         
         # Store the file content into a sequence
         try:
