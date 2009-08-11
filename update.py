@@ -40,7 +40,7 @@ class Update(FactoryMixin):
         FactoryMixin.__init__(self)
 
 
-    def compute_update(self, unit, outputs, errors, weight_updates, data, out_data):
+    def compute_update(self, unit, outputs, errors, weight_updates, user_data_in, user_data_out):
         """
         Compute the update to be applied, given the provided parameters. 
 
@@ -53,10 +53,10 @@ class Update(FactoryMixin):
                 Error values.
             weight_updates : sequence
                 Update values for the weights.
-            data
-                Data input, to be filled by the user if necessary.
-            out_data
-                Data output, to be filled by the user if necessary.
+            user_data_in
+                Input data, to be filled by the user if needed.
+            user_data_out
+                Output data, to be filled by the user if needed.
                 
         :Returns:
             The new values for the weights, after having applied the updates. 
@@ -75,7 +75,7 @@ class UpdateBackpropagation(Update):
         self._set_name("up_backpropagation")
 
 
-    def compute_update(self, index, unit, outputs, errors, weight_update, data, out_data): 
+    def compute_update(self, index, unit, outputs, errors, weight_update, user_data_in, user_data_out): 
         #inlearning_rate = 0.10
     
         weights = unit.get_weights()
@@ -106,7 +106,7 @@ class UpdateTD(Update):
         self._set_name("up_tdlearning")
 
 
-    def compute_update(self, Alpha, index, unit, outputs, errors, weight_update, data, out_data): 
+    def compute_update(self, Alpha, index, unit, outputs, errors, weight_update, user_data_in, user_data_out): 
 
         vgamma  = 0.001
         vlambda = 0.1
@@ -132,7 +132,7 @@ class UpdateTD(Update):
 
             next_weights.append(next_node_weights)
 
-        out_data.append(es)
+        user_data_out.append(es)
 
         return next_weights
     

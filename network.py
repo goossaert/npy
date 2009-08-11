@@ -25,14 +25,14 @@ import math
 import itertools
 import random
 
-from npy.data import *
-from npy.factory import Factory
-from npy.activation import Activation
-from npy.update import Update
-from npy.error import ErrorLinear
-from npy.error import ErrorOutputDifference
-from npy.exception import *
-from npy.label import *
+from data import *
+from factory import Factory
+from activation import Activation
+from update import Update
+from error import ErrorLinear
+from error import ErrorOutputDifference
+from exception import *
+from label import *
 
 
 class Node:
@@ -53,14 +53,14 @@ class Node:
             previous_nb_node : integer
                 The number of the nodes in the previous unit.
         """
-        self.__weights = []
+        self.weights = []
        
         for i in range(previous_nb_node):
-            self.__weights.append(random.uniform(-1, 1)) 
+            self.weights.append(random.uniform(-1, 1)) 
 
 
     def get_weights(self):
-        return self.__weights
+        return self.weights
 
 
     def set_weights(self, weights):
@@ -69,10 +69,10 @@ class Node:
             If the number of weights given in parameters of different than
             the number already present in the network.
         """
-        if len(weights) != len(self.__weights):
+        if len(weights) != len(self.weights):
             raise NpyDataTypeError, 'The number of weights must be the same as the number already present in the network.'
 
-        self.__weights = weights
+        self.weights = weights
 
 
     def compute_output(self, input, activation_function):
@@ -89,7 +89,7 @@ class Node:
             sequence: the output values of the `Network`.
         """
 
-        return activation_function.compute_activation(input, self.__weights)
+        return activation_function.compute_activation(input, self.weights)
 
 
 
@@ -127,18 +127,18 @@ class Unit:
                 `Error` instance used to compute the error of the unit.
         """
 
-        self.__nodes = []
-        self.__activation_function = activation_function
-        self.__update_function = update_function 
-        self.__error_function = error_function
+        self.nodes = []
+        self.activation_function = activation_function
+        self.update_function = update_function 
+        self.error_function = error_function
         
         for i in range(nb_nodes):
             node = Node(previous_nb_nodes)
-            self.__nodes.append(node)
+            self.nodes.append(node)
 
 
     def get_nb_nodes(self):
-        return len(self.__nodes) 
+        return len(self.nodes) 
 
 
     def get_weights(self):
@@ -152,7 +152,7 @@ class Unit:
 
         weights = []
         
-        for node in self.__nodes:
+        for node in self.nodes:
             weights.append(node.get_weights())
         return weights
 
@@ -166,33 +166,33 @@ class Unit:
                 Weights to be loaded into the nodes of the current unit.
         """
 
-        for node, weight in itertools.izip(self.__nodes, weights):
+        for node, weight in itertools.izip(self.nodes, weights):
             node.set_weights(weight)
         #self.Nodes[index].set_weights(weights)
 
 
     def set_activation_function(self, activation_function):
-        self.__activation_function = activation_function
+        self.activation_function = activation_function
 
 
     def get_activation_function(self):
-        return self.__activation_function
+        return self.activation_function
 
 
     def set_update_function(self, update_function):
-        self.__update_function = update_function
+        self.update_function = update_function
 
 
     def get_update_function(self):
-        return self.__update_function
+        return self.update_function
 
 
     def set_error_function(self, error):
-        self.__error_function = error
+        self.error_function = error
 
 
     def get_error_function(self):
-        return self.__error_function
+        return self.error_function
 
 
     def compute_output(self, input):
@@ -208,8 +208,8 @@ class Unit:
             sequence of floats : the output data for the current unit.
         """
         values = []
-        for node in self.__nodes: 
-            values.append(node.compute_output(input, self.__activation_function))
+        for node in self.nodes: 
+            values.append(node.compute_output(input, self.activation_function))
         
         return values 
 
@@ -227,7 +227,7 @@ class Unit:
         :Returns:
             Value of the activation function.
         """
-        return self.__activation_function.compute_activation(inputs, weights)
+        return self.activation_function.compute_activation(inputs, weights)
 
     
     def compute_errors(self, next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit):
@@ -259,20 +259,20 @@ class Unit:
             The error for the unit.
         """
 
-        if self.__error_function == None:
+        if self.error_function == None:
             if index_unit == nb_unit - 1:
                 error_function = ErrorOutputDifference()
             else:
                 error_function = ErrorLinear()
         else:
-            error_function = self.__error_function 
+            error_function = self.error_function 
 
-        return error_function.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, self.__activation_function.activation_derivative)
+        return error_function.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, self.activation_function.activation_derivative)
 
-        #return self.__activation_function.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit)
+        #return self.activation_function.compute_errors(next_unit_errors, desired_output, outputs, next_unit_weights, index_unit, nb_unit)
 
 
-    def compute_update(self, index, unit, outputs, error_network, update_network, data, out_data): 
+    def compute_update(self, index, unit, outputs, error_network, update_network, user_data_in, user_data_out): 
         """
         Compute the update to be applied, given the provided parameters. 
 
@@ -287,15 +287,15 @@ class Unit:
                 Error values.
             update_network : sequence
                 Update values for the weights.
-            data
-                Data input, to be filled by the user if necessary.
-            out_data
-                Data output, to be filled by the user if necessary.
+            user_data_in
+                Input data, to be filled by the user if needed.
+            user_data_out
+                Output data, to be filled by the user if needed.
                 
         :Returns:
             The new values for the weights, after having applied the updates. 
         """
-        return self.__update_function.compute_update(index, unit, outputs, error_network, update_network, data, out_data)
+        return self.update_function.compute_update(index, unit, outputs, error_network, update_network, user_data_in, user_data_out)
    
 
 class UnitInput(Unit):
@@ -317,16 +317,16 @@ class UnitInput(Unit):
                 Number of nodes required in the unit. 
         """
         Unit.__init__(self, nb_nodes, 0, None, None, None)
-        self.__nb_nodes = nb_nodes
+        self.nb_nodes = nb_nodes
 
 
     def get_nb_nodes(self):
-        return self.__nb_nodes
+        return self.nb_nodes
 
 
 
 
-class Network:
+class Network(object):
     """
     Neural network class.
 
@@ -351,11 +351,11 @@ class Network:
             learning_rate : float
                 Learning rate of the network.
         """
-        self.__unit_input = None
-        self.__units = []
-        self.__learning_rate = learning_rate
-        self.__label_function = None
-        self.__use_bias = use_bias
+        self.unit_input = None
+        self.units = []
+        self.learning_rate = learning_rate
+        self._label_function = None
+        self.use_bias = use_bias
 
 
     def reset(self):
@@ -363,23 +363,23 @@ class Network:
         Delete the internal topology of the network, making it ready
         to receive a new one.
         """
-        self.__unit_input = None
-        self.__units = []
-        self.__learning_rate = None
+        self.unit_input = None
+        self.units = []
+        self.learning_rate = None
 
 
     def get_units(self):
-        units = [self.__unit_input]
-        units.extend(self.__units[:])
+        units = [self.unit_input]
+        units.extend(self.units[:])
         return units
 
     
     def get_learning_rate(self):
-        return self.__learning_rate
+        return self.learning_rate
 
 
     def set_learning_rate(self, learning_rate):
-        self.__learning_rate = learning_rate
+        self.learning_rate = learning_rate
 
 
     def set_label_function(self, name_label_function):
@@ -389,12 +389,15 @@ class Network:
         """
         try:
             Factory.check_prefix(name_label_function, Label.prefix)
-            self.__label_function = Factory.build_instance_by_name(name_label_function)
+            self._label_function = Factory.build_instance_by_name(name_label_function)
         except NpyTransferFunctionError, e:
             raise NpyTransferFunctionError, e.msg
 
+
     def get_label_function(self):
-        return self.__label_function
+        return self._label_function
+
+    label_function = property(get_label_function, set_label_function)
 
 
     def add_unit(self, nb_nodes, name_activation_function=None, name_update_function=None, name_error_function=None):
@@ -432,22 +435,22 @@ class Network:
 
         # And for the non-input units, the activation and update functions
         # must be defined.
-        if self.__unit_input != None \
+        if self.unit_input != None \
           and (name_activation_function == None or name_update_function == None):
             raise NpyUnitError, 'Activation and update functions must be specified.'
 
         # Handle the input unit
-        if self.__unit_input == None:
+        if self.unit_input == None:
             unit = UnitInput(nb_nodes)
-            self.__unit_input = unit
+            self.unit_input = unit
         else:
             # Handle the other units
-            if len(self.__units) == 0:
-                unit_previous = self.__unit_input
+            if len(self.units) == 0:
+                unit_previous = self.unit_input
             else:
-                unit_previous = self.__units[-1]
+                unit_previous = self.units[-1]
 
-            if self.__use_bias == True:
+            if self.use_bias == True:
                 # Add 1 in order to implement the bias
                 nb_previous_nodes = unit_previous.get_nb_nodes() + 1
 
@@ -469,7 +472,7 @@ class Network:
 
             # Create the unit and add it to the network
             unit = Unit(nb_nodes, nb_previous_nodes, activation_function, update_function, error_function)
-            self.__units.append(unit)
+            self.units.append(unit)
 
         return unit
 
@@ -494,16 +497,16 @@ class Network:
             If the `Network` has no unit.
         """
                                                          
-        if len(data_instance.get_attributes()) != self.__unit_input.get_nb_nodes():
+        if len(data_instance.get_attributes()) != self.unit_input.get_nb_nodes():
             raise NpyValueError, 'The number of inputs given to the network is invalid.'
 
-        if self.__unit_input == None:
+        if self.unit_input == None:
             raise NpyIncompleteError, 'The network has no unit, and thus cannot clasify anything.'
 
-        if len(self.__units) > 0:
+        if len(self.units) > 0:
             vector_output = [list(data_instance.get_attributes())] 
-            for unit in self.__units:
-                if self.__use_bias == True:
+            for unit in self.units:
+                if self.use_bias == True:
                     # Add the bias value to the input
                     vector_output[-1].append(1)
                 vector_output.append(unit.compute_output(vector_output[-1])) 
@@ -576,7 +579,7 @@ class Network:
             data_instances = data_set.get_data_instances()
             for data_instance in data_instances:
                 label_number = self.classify_data_instance(data_instance)
-                data_classification.add_data_label(data_instance.get_index_number(), label_number)
+                data_classification.add_data_label(data_instance, label_number)
         except NpyValueError, e:
             raise NpyValueError, e.msg
         except NpyIncompleteError, e:
@@ -608,18 +611,17 @@ class Network:
             raise NpyIncompleteError, e.msg
 
 
-    def learn_data_instance(self, data_instance, data=None, out_data=None):
+    def learn_data_instance(self, data_instance, user_data_in=None, user_data_out=None):
         """
         Makes the network learn the given `DataInstance`.
 
         :Parameters:
             data_instance : `DataInstance`
                 `DataInstance` to be learned.
-            data
-                Data input, to be filled by the user if necessary.
-            out_data
-                Data output, to be filled by the user if necessary,
-                and can be retrieved when the function ends.
+            user_data_in
+                Input data, to be filled by the user if needed.
+            user_data_out
+                Output data, to be filled by the user if needed.
 
         :Raises NpyValueError:
             If the size of the sequence given in input is not the one
@@ -631,13 +633,13 @@ class Network:
         """
         # TODO Transform this method into a template mothod: it will increase the cohesion.
                                                          
-        if len(data_instance.get_attributes()) != self.__unit_input.get_nb_nodes():
+        if len(data_instance.get_attributes()) != self.unit_input.get_nb_nodes():
             raise NpyValueError, 'The number of inputs given to the network is invalid.'
 
-        if self.__learning_rate == None:
+        if self.learning_rate == None:
             raise NpyIncompleteError, 'The network has no learning rate, and thus cannot learn anything.'
 
-        if self.__unit_input == None:
+        if self.unit_input == None:
             raise NpyIncompleteError, 'The network has no unit, and thus cannot clasify anything.'
 
         desired_output = self.label_to_vector(data_instance.get_label_number())
@@ -650,8 +652,8 @@ class Network:
         previous_weights = None
 
         # Compute the error values: it has to be done backward 
-        for unit, output, index in reversed(zip(self.__units, outputs[1:], range(len(self.__units)))):
-            error_network.append(unit.compute_errors(error_network[-1], desired_output, output, previous_weights, index, len(self.__units)))
+        for unit, output, index in reversed(zip(self.units, outputs[1:], range(len(self.units)))):
+            error_network.append(unit.compute_errors(error_network[-1], desired_output, output, previous_weights, index, len(self.units)))
             previous_weights = unit.get_weights()
       
         # The dummy 'None' can be deleted
@@ -660,7 +662,7 @@ class Network:
         # The right order is the converse
         error_network.reverse()
 
-        if self.__use_bias == True:
+        if self.use_bias == True:
             # The use of the bias created useless error values
             # that have to be deleted 
             for index_unit in range(len(error_network) - 1):
@@ -673,14 +675,14 @@ class Network:
             for error_node in error_unit:
                 update_node = [] 
                 for input_node in input_unit:
-                    update_node.append(self.__learning_rate * error_node * input_node)
+                    update_node.append(self.learning_rate * error_node * input_node)
                 update_unit.append(update_node)
             update_network.append(update_unit)
 
         # Compute the new weights
         weights = []
-        for unit, error_unit, weight_update, index in itertools.izip(self.__units, error_network, update_network, range(len(self.__units))):
-            weights.append(unit.compute_update(index, unit, outputs, error_unit, weight_update, data, out_data))
+        for unit, error_unit, weight_update, index in itertools.izip(self.units, error_network, update_network, range(len(self.units))):
+            weights.append(unit.compute_update(index, unit, outputs, error_unit, weight_update, user_data_in, user_data_out))
        
         self.set_weights(weights)
 
@@ -700,11 +702,11 @@ class Network:
             If no label function is defined for the network.
         """
 
-        if self.__label_function == None:
+        if self.label_function == None:
             raise NpyTransferFunctionError, 'No label function is defined for the network.'
 
-        nb_nodes_last_unit = self.__units[-1].get_nb_nodes()
-        return self.__label_function.label_to_vector(label, nb_nodes_last_unit)
+        nb_nodes_last_unit = self.units[-1].get_nb_nodes()
+        return self._label_function.label_to_vector(label, nb_nodes_last_unit)
 
 
     def vector_to_label(self, vector):
@@ -724,9 +726,9 @@ class Network:
             If no label function is defined for the network.
         """
 
-        if self.__label_function == None:
+        if self.label_function == None:
             raise NpyTransferFunctionError, 'No label function is defined for the network.'
-        return self.__label_function.vector_to_label(vector)
+        return self.label_function.vector_to_label(vector)
 
 
     def get_topology(self):
@@ -741,15 +743,15 @@ class Network:
 
         # General parameters
         topology = {}
-        topology["learning_rate"] = self.__learning_rate
-        topology["nb_units"] = len(self.__units) + 1
-        topology["use_bias"] = self.__use_bias 
+        topology["learning_rate"] = self.learning_rate
+        topology["nb_units"] = len(self.units) + 1
+        topology["use_bias"] = self.use_bias 
 
         # Input unit
-        topology["unit1_nbnodes"] = self.__unit_input.get_nb_nodes()
+        topology["unit1_nbnodes"] = self.unit_input.get_nb_nodes()
 
         # For each hidden unit and the output unit
-        for index_unit, unit in zip(range(2,len(self.__units)+2), self.__units):
+        for index_unit, unit in zip(range(2,len(self.units)+2), self.units):
             
             # Parameters for the current unit
             name_unit = "unit" + str(index_unit)
@@ -797,8 +799,8 @@ class Network:
         self.reset()
 
         # General parameters
-        self.__learning_rate = float(topology["learning_rate"])
-        self.__use_bias = bool(topology["use_bias"])
+        self.learning_rate = float(topology["learning_rate"])
+        self.use_bias = bool(topology["use_bias"])
 
         # Input unit
         self.add_unit(int(topology["unit1_nbnodes"]))
@@ -823,7 +825,7 @@ class Network:
         """
 
         weights_network = []
-        for unit in self.__units:
+        for unit in self.units:
             weights_unit = unit.get_weights()
             weights_network.append(weights_unit)
         return weights_network
@@ -838,7 +840,7 @@ class Network:
                 Weights of the entire network
         """
 
-        for weights_unit, unit in zip(weights_network, self.__units):
+        for weights_unit, unit in zip(weights_network, self.units):
             unit.set_weights(weights_unit)
 
 

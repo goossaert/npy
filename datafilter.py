@@ -22,8 +22,8 @@ __docformat__ = "restructuredtext en"
 
 import sys
 
-from npy.data import DataSet
-from npy.data import DataInstance
+from data import DataSet
+from data import DataInstance
 
 class Numerizer:
     """
@@ -49,8 +49,8 @@ class Numerizer:
                 Data to use in order to build the `Numerizer`.
         """
 
-        self.__attributes = {}
-        self.__label = {}
+        self.attributes = {}
+        self.label = {}
 
         data_instances = ds_source.get_data_instances()
         for data_instance in data_instances:
@@ -61,7 +61,7 @@ class Numerizer:
                 except ValueError:
                     # Every time a non-float attribute value is met,
                     # it is added to the numerizer
-                    self.__add_value_for_attribute(value, index) 
+                    self.add_value_for_attribute(value, index) 
 
             # Process the label value
             label = data_instance.get_label_number()
@@ -87,12 +87,12 @@ class Numerizer:
             If the given index is already in use.
         """
 
-        if not index_attribute in self.__attributes:
-            self.__attributes[index_attribute] = {}
+        if not index_attribute in self.attributes:
+            self.attributes[index_attribute] = {}
         else:
             raise NpyIndexError, 'Index value already used'
 
-        values = self.__attributes[index_attribute]
+        values = self.attributes[index_attribute]
         if not value_attribute in values:
             values[value_attribute] = len(values) + 1
 
@@ -112,10 +112,10 @@ class Numerizer:
             integer: the numeric value associated with a attribute string.
         """
 
-        if not index_attribute in self.__attributes:
+        if not index_attribute in self.attributes:
             return None
 
-        values = self.__attributes[index_attribute]
+        values = self.attributes[index_attribute]
         if not value_attribute in values:
             return None
 
@@ -127,8 +127,8 @@ class Numerizer:
         Add value for label.
         """
 
-        if not value_label in self.__label:
-            self.__label[value_label] = len(self.__label) + 1
+        if not value_label in self.label:
+            self.label[value_label] = len(self.label) + 1
 
 
     def label_string_to_number(self, label_string):
@@ -145,10 +145,10 @@ class Numerizer:
             Returns None if the label string is not found.
         """
 
-        if not label_string in self.__label:
+        if not label_string in self.label:
             return None
 
-        return self.__label[label_string]
+        return self.label[label_string]
 
 
     def label_number_to_string(self, label_number):
@@ -167,7 +167,7 @@ class Numerizer:
 
         label_string = None
 
-        for string, number in self.__label.iteritems():
+        for string, number in self.label.iteritems():
             if label_number == number:
                 label_string = string
                 break
@@ -258,10 +258,10 @@ class Normalizer:
         if ds_source.is_numerized == False:
             raise NpyDataTypeError, 'ds_source must be numerized first.'
 
-        self.__lower_bound = float(lower_bound)
-        self.__upper_bound = float(upper_bound)
-        self.__min = None
-        self.__max = None
+        self.lower_bound = float(lower_bound)
+        self.upper_bound = float(upper_bound)
+        self.min = None
+        self.max = None
 
         nb_attributes = ds_source.get_nb_attributes()
         value_min = [ float( sys.maxint) for i in range(nb_attributes) ]
@@ -282,19 +282,19 @@ class Normalizer:
 
              
     def set_lower_bound(self, value):
-        self.__lower_bound = float(value)
+        self.lower_bound = float(value)
 
 
     def set_upper_bound(self, value):
-        self.__upper_bound = float(value)
+        self.upper_bound = float(value)
 
 
     def __set_min(self, value_min):
-        self.__min = value_min
+        self.min = value_min
 
 
     def __set_max(self, value_max):
-        self.__max = value_max
+        self.max = value_max
 
              
     def normalize(self, ds_source):
@@ -325,7 +325,7 @@ class Normalizer:
 
             # Normalize each attribute
             for index, value in enumerate(data_instance_old.get_attributes()):
-                value_new = (value - self.__min[index]) * self.__max[index] * (self.__upper_bound - self.__lower_bound) + self.__lower_bound
+                value_new = (value - self.min[index]) * self.max[index] * (self.upper_bound - self.lower_bound) + self.lower_bound
                 attributes_new.append(value_new)
 
             ds_dest.add_data_instance(data_instance_old.get_index_number(), attributes_new, data_instance_old.get_label_number())
@@ -346,7 +346,7 @@ class Filter:
             `Normalizer` used by the filter.
     """
    
-    def __init__(self,ds_source,normalizer_lower_bound=None,normalizer_upper_bound=None):
+    def __init__(self, ds_source, normalizer_lower_bound=None, normalizer_upper_bound=None):
         """
         Initializer.
 
@@ -359,13 +359,13 @@ class Filter:
                 Upper bound used by the `Normalizer`.
         """
 
-        self.__numerizer = Numerizer(ds_source)
-        ds_numerized = self.__numerizer.numerize(ds_source)
+        self.numerizer = Numerizer(ds_source)
+        ds_numerized = self.numerizer.numerize(ds_source)
 
         if normalizer_lower_bound != None or normalizer_upper_bound != None:
-            self.__normalizer = Normalizer(ds_numerized, normalizer_lower_bound, normalizer_upper_bound)
+            self.normalizer = Normalizer(ds_numerized, normalizer_lower_bound, normalizer_upper_bound)
         else:
-            self.__normalizer = Normalizer(ds_numerized)
+            self.normalizer = Normalizer(ds_numerized)
             
 
     def filter(self, ds_source):
@@ -381,8 +381,8 @@ class Filter:
             `DataSet` : data set filtered
         """
 
-        ds_numerized = self.__numerizer.numerize(ds_source)
-        ds_normalized = self.__normalizer.normalize(ds_numerized)
+        ds_numerized = self.numerizer.numerize(ds_source)
+        ds_normalized = self.normalizer.normalize(ds_numerized)
         return ds_normalized
 
 
@@ -399,4 +399,4 @@ class Filter:
             string : the label string.
         """
 
-        return self.__numerizer.label_number_to_string(number)
+        return self.numerizer.label_number_to_string(number)

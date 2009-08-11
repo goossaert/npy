@@ -23,6 +23,7 @@ __docformat__ = "restructuredtext en"
 
 import csv
 import sys
+import os
 
 
 class NetworkIO_CSV:
@@ -32,7 +33,7 @@ class NetworkIO_CSV:
     :IVariables:
         __stream : Stream 
             Stream instance used for the I/O operations. In the case of this
-            CSV module, the stream is the prefix of the CSV file to be used.
+            CSV module, the stream is the name of the CSV file to use.
     """
 
     def __init__(self, stream=None):
@@ -43,7 +44,7 @@ class NetworkIO_CSV:
             stream : string 
                 Prefix of the CSV file to be used.
         """
-        self.__stream = stream
+        self.stream = stream
 
 
     def set_stream(self, stream):
@@ -54,7 +55,7 @@ class NetworkIO_CSV:
             stream : string 
                 Prefix of the CSV file to be used.
         """
-        self.__stream = stream
+        self.stream = stream
 
 
     def get_stream(self):
@@ -64,7 +65,7 @@ class NetworkIO_CSV:
         :Returns:
             string : the prefix of the used CSV file.
         """
-        return self.__stream
+        return self.stream
 
 
     def write_table(self, stream_info, table):
@@ -80,7 +81,8 @@ class NetworkIO_CSV:
         :Raises NpyStreamError:
             If a problem occurs while writing the file.
         """
-        filename = self.__stream + stream_info 
+        (name, ext) = os.path.splitext(self.stream)
+        filename = name + stream_info + ext
         string_error = 'Unable to write the file: ' + filename
         try:            writer = csv.writer(file(filename, "w"))
         except IOError: raise NpyStreamError, string_error
@@ -107,7 +109,8 @@ class NetworkIO_CSV:
             sequence of sequence: the table read from the file
         """
         try:
-            filename = self.__stream + stream_info
+            (name, ext) = os.path.splitext(self.stream)
+            filename = name + stream_info + ext
             reader = csv.reader(open(filename, "rb"))
         except IOError:
             string_error = 'Unable to read the file: ' + filename
@@ -132,7 +135,7 @@ class NetworkIO_CSV:
             If a problem occurs while reading the file.
         """
 
-        table = self.read_table('_topology.csv')
+        table = self.read_table('_topology')
    
         # build the information dictionary as we know it
         topology = {}
@@ -165,7 +168,7 @@ class NetworkIO_CSV:
             values.append(v)
         table = [ fields, values ]
 
-        self.write_table('_topology.csv', table) 
+        self.write_table('_topology', table) 
 
 
     def read_weights(self,network):
@@ -182,7 +185,7 @@ class NetworkIO_CSV:
         # Build the sequence that will be filled with weights
         weight_network = network.get_weights()
        
-        table = self.read_table('_weights.csv')
+        table = self.read_table('_weights')
         row_fields = table[0]
 
         # Build the fieldname reference
@@ -227,4 +230,4 @@ class NetworkIO_CSV:
                 for index_weight, weight in zip(range(1,len(weight_node)+1), weight_node):
                     table.append([index_unit, index_node, index_weight, weight])
 
-        self.write_table('_weights.csv', table) 
+        self.write_table('_weights', table) 

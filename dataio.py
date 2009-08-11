@@ -22,9 +22,9 @@ __docformat__ = "restructuredtext en"
 
 import csv
 import sys
-from npy.data import DataSet
-from npy.data import DataInstance
-from npy.exception import *
+from data import DataSet
+from data import DataInstance
+from exception import *
 
 class DataIO_CSV:
     """
@@ -33,7 +33,7 @@ class DataIO_CSV:
     :IVariables:
         __stream : Stream 
             Stream instance used for the I/O operations. In the case of this
-            CSV module, the stream is the prefix of the CSV file to be used.
+            CSV module, the stream is the name of the CSV file to be used.
         __attribute_id : string
             Name of the attribute that contains the index field in the
             stream.
@@ -62,13 +62,13 @@ class DataIO_CSV:
                 Strings that are to be considered as representing invalid
                 and/or missing values in the data set.
         """
-        self.__stream = stream
-        self.__attribute_id = attribute_id
-        self.__attribute_label = attribute_label 
+        self.stream = stream
+        self.attribute_id = attribute_id
+        self.attribute_label = attribute_label 
 
         if not isinstance(null_values, list):
             null_values = [null_values]
-        self.__null_values = null_values
+        self.null_values = null_values
 
 
     def set_stream(self,stream):
@@ -79,7 +79,7 @@ class DataIO_CSV:
             stream : string 
                 Prefix of the CSV file to be used.
         """
-        self.__stream = stream
+        self.stream = stream
 
 
     def get_stream(self):
@@ -89,7 +89,7 @@ class DataIO_CSV:
         :Returns:
             string : the prefix of the used CSV file.
         """
-        return self.__stream
+        return self.stream
 
 
     def add_null_value(self, value):
@@ -97,7 +97,7 @@ class DataIO_CSV:
         Add a possible value for the null values, which will be replaced
         by None in the reading process.
         """
-        self.__null_values.append(value)
+        self.null_values.append(value)
         pass
 
 
@@ -109,7 +109,7 @@ class DataIO_CSV:
             name : string 
                 Name of the id attribute 
         """
-        self.__attribute_id = name
+        self.attribute_id = name
 
 
     def set_attribute_label(self, name):
@@ -120,7 +120,7 @@ class DataIO_CSV:
             name : string 
                 Name of the label attribute 
         """
-        self.__attribute_label = name
+        self.attribute_label = name
 
 
     # TODO there is a read method, but not a write: code the write one!
@@ -148,10 +148,9 @@ class DataIO_CSV:
         
         # Store the file content into a sequence
         try:
-            filename = self.__stream + ".csv" 
-            reader = csv.reader(open(filename, "rb"))
+            reader = csv.reader(open(self.stream, "rb"))
         except IOError:
-            string_error = 'Unable to read the file: ' + filename
+            string_error = 'Unable to read the file: ' + self.stream
             raise NpyStreamError, string_error
             
         rows = []
@@ -162,7 +161,7 @@ class DataIO_CSV:
         index_label = -1
         index_label_found = True 
         try:
-            index_label = rows[0].index(self.__attribute_label)
+            index_label = rows[0].index(self.attribute_label)
         except ValueError:
             index_label_found = False
 
@@ -173,18 +172,18 @@ class DataIO_CSV:
         index_id = -1
         index_id_found = True 
         try:
-            index_id = rows[0].index(self.__attribute_id)
+            index_id = rows[0].index(self.attribute_id)
         except ValueError:
             index_id_found = False
 
         # Read the first row to get the attribute names
         name_attribute = rows[0][:]
-        name_attribute.remove(self.__attribute_label)
+        name_attribute.remove(self.attribute_label)
         if index_id_found:
-            name_attribute.remove(self.__attribute_id)
+            name_attribute.remove(self.attribute_id)
 
         #for name in rows[0]:
-        #    if name != self.__attribute_label and name != self.__attribute_id:
+        #    if name != self.attribute_label and name != self.attribute_id:
         #        name_attribute.append(name)
         data_set.set_name_attribute(name_attribute) 
 
@@ -195,7 +194,7 @@ class DataIO_CSV:
                 if index_attribute == index_label \
                   or (index_id_found and index_attribute == index_id):
                     continue
-                if value in self.__null_values:
+                if value in self.null_values:
                     value = None
                 value_attribute.append(value)
 

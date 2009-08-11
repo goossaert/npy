@@ -43,21 +43,21 @@ class DataInstance:
                 Value of the label given to the data_instance.
         """
 
-        self.__index_number = index_number
-        self.__attributes = tuple(attributes)
-        self.__label_number = label_number
+        self.index_number = index_number
+        self.attributes = tuple(attributes)
+        self.label_number = label_number
 
 
     def get_index_number(self):
-        return self.__index_number
+        return self.index_number
 
 
     def get_attributes(self):
-        return self.__attributes
+        return self.attributes
 
 
     def get_label_number(self):
-        return self.__label_number
+        return self.label_number
 
 
 
@@ -77,7 +77,7 @@ class DataSet:
             Store if the current `DataSet` has been numerized or not.
             The default state is false, so that the user has to explicitely
             set this parameter before using the `DataSet` into a `Network`.
-            *This variable is publicly accessible.*
+            *This attibute is publicly accessible.*
     """
 
     def __init__(self):
@@ -85,8 +85,8 @@ class DataSet:
         Initializer.
         """
 
-        self.__data_instances = {}
-        self.__name_attribute = ()
+        self.data_instances = {}
+        self.name_attribute = ()
         self.is_numerized = False
 
 
@@ -103,10 +103,10 @@ class DataSet:
             If the `DataInstance` index already exists in the `DataSet`.
         """
 
-        if data_instance.get_index_number() in self.__data_instances:
+        if data_instance.get_index_number() in self.data_instances:
             raise NpyIndexError, 'Index already exists in the DataSet'
 
-        self.__data_instances[data_instance.get_index_number()] = data_instance
+        self.data_instances[data_instance.get_index_number()] = data_instance
 
 
     def add_data_instance(self, index_number, attributes, label_number):
@@ -127,7 +127,11 @@ class DataSet:
         """
         
         data_instance = DataInstance(index_number, attributes, label_number)
-        self.add_data_instance_object(data_instance)
+
+        try:
+            self.add_data_instance_object(data_instance)
+        except NpyIndexError, e:
+            raise NpyIndexError, e.msg
 
 
     def get_data_instance_by_id(self, index_number):
@@ -144,10 +148,10 @@ class DataSet:
             the `DataSet`.
         """
 
-        if not index_number in self.__data_instances:
+        if not index_number in self.data_instances:
             return None
 
-        return self.__data_instances[index_number]
+        return self.data_instances[index_number]
 
 
     def get_data_instances(self):
@@ -160,22 +164,22 @@ class DataSet:
         """
 
         data = []
-        for k, v in self.__data_instances.items():
+        for k, v in self.data_instances.items():
             data.append(v)
 
         return data
 
 
     def set_name_attribute(self, name_attribute):
-        self.__name_attribute = tuple(name_attribute)
+        self.name_attribute = tuple(name_attribute)
 
 
     def get_name_attribute(self):
-        return self.__name_attribute
+        return self.name_attribute
 
 
     def get_nb_attributes(self):
-        return len(self.__name_attribute)
+        return len(self.name_attribute)
         
 
 
@@ -187,26 +191,26 @@ class DataLabel:
     made.
     """
 
-    def __init__(self, index_number, label_number):
+    def __init__(self, data_instance, label_number):
         """
         Initializer
         
         :Parameters:
-            index_number : integer
-                Id number for the classified data_instance.
+            data_instance : `DataInstance`
+                `DataInstance` to be labeled.
             label_number : integer 
                 Numeric value of the label given to the data_instance.
         """
-        self.__index_number = index_number
-        self.__label_number = label_number
+        self.data_instance = data_instance
+        self.label_number = label_number
 
 
-    def get_index_number(self):
-        return self.__index_number
+    def get_data_instance(self):
+        return self.data_instance
 
 
     def get_label_number(self):
-        return self.__label_number
+        return self.label_number
 
 
 
@@ -221,7 +225,7 @@ class DataClassification:
         Initializer
         """
 
-        self.__data_labels = {}
+        self.data_labels = {}
 
 
     def add_data_label_object(self, data_label):
@@ -237,25 +241,33 @@ class DataClassification:
             If the index already exists in the `DataClassification`.
         """
 
-        if data_label.get_index_number() in self.__data_labels:
+        data_instance = data_label.get_data_instance()
+        if data_instance.get_index_number() in self.data_labels:
             raise NpyIndexError, 'Index already exists in the DataClassification'
 
-        self.__data_labels[data_label.get_index_number()] = data_label
+        self.data_labels[data_instance.get_index_number()] = data_label
 
 
-    def add_data_label(self, index_number, label_number):
+    def add_data_label(self, data_instance, label_number):
         """
         Add a data data_instance into the `DataClassification`, by passing
         directly the arguments of the initializer of DataInstance.
         
         :Parameters:
-            index_number : integer
-                Id number for the labeled data_instance.
+            data_instance : `DataInstance`
+                `DataInstance` to be labeled.
             label_number : integer 
                 Numeric value of the label given to the data_instance.
+
+        :Raises NpyIndexError:
+            If the index already exists in the `DataClassification`.
         """
-        data_label = DataLabel(index_number, label_number)
-        self.add_data_label_object(data_label)
+        data_label = DataLabel(data_instance, label_number)
+
+        try:
+            self.add_data_label_object(data_label)
+        except NpyIndexError, e:
+            raise NpyIndexError, e.msg
 
 
     def get_data_label_by_id(self, index_label):
@@ -272,10 +284,10 @@ class DataClassification:
             the `DataClassification`.
         """
         
-        if not index_label in self.__data_labels:
+        if not index_label in self.data_labels:
             return None
 
-        return self.__data_labels[index_label]
+        return self.data_labels[index_label]
 
 
     def get_data_labels(self):
@@ -288,7 +300,7 @@ class DataClassification:
         """
 
         data = []
-        for k, v in self.__data_labels.items():
+        for k, v in self.data_labels.items():
             data.append(v)
 
         return data

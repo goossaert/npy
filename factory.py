@@ -115,15 +115,15 @@ class FactoryMixin:
         """
         Initializer
         """
-        self.__name = None 
+        self.name = None 
 
 
     def get_name(self):
-        return self.__name
+        return self.name
 
 
     def _set_name(self,name):
-        self.__name = name
+        self.name = name
 
 
     def build_instance(self):
